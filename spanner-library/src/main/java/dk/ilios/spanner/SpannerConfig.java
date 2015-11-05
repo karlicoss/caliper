@@ -5,24 +5,24 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 /**
- * Class for adding custom configuration of a Gauge run.
+ * Class for adding custom configuration of a Spanner run.
  */
 public class SpannerConfig {
 
     private final File resultsFolder;
     private final File baseLineFile;
     private final boolean warnIfWrongTestGranularity;
-    private final boolean createBaseLine;
+    private final File baselineOutputFile;
     private final URL uploadUrl;
     private final String apiKey;
     private final boolean uploadResults;
-    private double baselineFailure;
+    private float baselineFailure;
 
     private SpannerConfig(Builder builder) {
         this.resultsFolder = builder.resultsFolder;
         this.baseLineFile = builder.baseLineFile;
         this.warnIfWrongTestGranularity = builder.warnIfWrongTestGranularity;
-        this.createBaseLine = builder.createBaseline;
+        this.baselineOutputFile = builder.baselineOutputFile;
         this.uploadResults = builder.uploadResults;
         this.uploadUrl = builder.uploadUrl;
         this.apiKey = builder.apiKey;
@@ -37,12 +37,12 @@ public class SpannerConfig {
         return baseLineFile;
     }
 
-    public boolean shouldWarnIfWrongTestGranularity() {
+    public boolean warnIfWrongTestGranularity() {
         return warnIfWrongTestGranularity;
     }
 
-    public boolean shouldCreateBaseline() {
-        return createBaseLine;
+    public File getBaselineOutputFile() {
+        return baselineOutputFile;
     }
 
     public URL getUploadUrl() {
@@ -57,22 +57,22 @@ public class SpannerConfig {
         return uploadResults;
     }
 
-    public double getBaselineFailure() {
+    public float getBaselineFailure() {
         return baselineFailure;
     }
 
     /**
-     * Builder for fluent construction of a GaugeConfig object.
+     * Builder for fluent construction of a SpannerConfig object.
      */
     public static class Builder {
         private File resultsFolder = null;
         private File baseLineFile = null;
-        private boolean warnIfWrongTestGranularity = false;
-        private boolean createBaseline = false;
+        private boolean warnIfWrongTestGranularity = true;
+        private File baselineOutputFile = null;
         private boolean uploadResults = false;
         private String apiKey = "";
         private URL uploadUrl = getUrl("https://microbenchmarks.appspot.com");
-        private  double baselineFailure = 20.0; // If change from baseline is bigger, fail experiment
+        private float baselineFailure = 0.2f; // 20% difference from baseline will fail the experiment.
 
         public Builder() {
         }
@@ -90,8 +90,8 @@ public class SpannerConfig {
          * @param dir Reference to folder.
          * @return Builder object.
          */
-        public Builder resultsFolder(File dir) {
-            checkNotNull(dir, "Results folder was null.");
+        public Builder saveResults(File dir) {
+            checkValidWritableFolder(dir);
             this.resultsFolder = dir;
             return this;
         }
@@ -104,15 +104,15 @@ public class SpannerConfig {
          * @param file Reference to the baseline file (see .
          * @return Builder object.
          */
-        public Builder baseline(File file) {
+        public Builder useBaseline(File file) {
             checkNotNull(file, "Baseline file was null");
             this.baseLineFile = file;
             return this;
         }
 
         /**
-         * Setting this will cause Gauge to verify that the granularity of the tests are set correctly or will
-         * @return
+         * Setting this will cause Spanner to verify that the granularity of the tests are set correctly.
+         * Otherwise it will throw an error.
          */
         public Builder warnIfWrongTestGranularity() {
             this.warnIfWrongTestGranularity = true;
@@ -120,11 +120,12 @@ public class SpannerConfig {
         }
 
         /**
-         * Setting this will cause the benchmarks results to be saved in a new baseline file in the results folder.
-         * @return
+         * Save the result of this of benchmark as a new baseline file called {@code baseline.json}.
+         * @param dir Folder to save the new baseline file in.
          */
-        public Builder createBaseline() {
-            this.createBaseline = true;
+        public Builder createBaseline(File dir) {
+            checkValidWritableFolder(dir);
+            this.baselineOutputFile = new File(dir, "baseline.json");
             return this;
         }
 
@@ -144,11 +145,13 @@ public class SpannerConfig {
             return this;
         }
 
-        public Builder baselineFailure(double percentage) {
-            if (percentage < 0 || percentage > 100) {
-                throw new IllegalArgumentException("Percentage must be [0,100]. Yours was: " + percentage);
-            }
-            baselineFailure = percentage;
+        /**
+         * The difference in percent from the baseline allowed before the experiment will be a failure.
+         * @param percentage [0-1.0] for [0-100%]
+         * @return the Builder.
+         */
+        public Builder baselineFailure(float percentage) {
+            baselineFailure = Math.abs(percentage);
             return this;
         }
 
@@ -163,6 +166,13 @@ public class SpannerConfig {
                 return new URL(url);
             } catch (MalformedURLException e) {
                 throw new RuntimeException(e);
+            }
+        }
+
+        private void checkValidWritableFolder(File dir) {
+            checkNotNull(dir, "Non-null results folder required.");
+            if (!dir.isDirectory() || !dir.canWrite()) {
+                throw new IllegalArgumentException("Results folder is either not a directory or not writable.");
             }
         }
     }

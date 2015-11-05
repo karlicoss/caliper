@@ -29,7 +29,9 @@ import dk.ilios.spanner.Spanner;
 import dk.ilios.spanner.SpannerConfig;
 import dk.ilios.spanner.exception.TrialFailureException;
 import dk.ilios.spanner.internal.InvalidBenchmarkException;
+import dk.ilios.spanner.json.ExcludeFromJson;
 import dk.ilios.spanner.model.Measurement;
+import dk.ilios.spanner.model.Run;
 import dk.ilios.spanner.model.Trial;
 
 /**
@@ -118,17 +120,21 @@ public class SpannerRunner extends Runner {
             final Description RUNNING = Description.createTestDescription(testClass.getJavaClass(), "doingStuff");
             runNotifier.fireTestRunStarted(RUNNING);
             runBenchmarks(runNotifier);
-        } catch (InvalidBenchmarkException e) {
-            throw new RuntimeException(e);
         } finally {
+            // TODO Notify UI if an exception happened, otherwise it will just report "empty test suite"
             runNotifier.fireTestRunFinished(null);
         }
     }
 
-    private void runBenchmarks(final RunNotifier runNotifier) throws InvalidBenchmarkException {
+    private void runBenchmarks(final RunNotifier runNotifier) {
         Spanner.runBenchmarks(testClass.getJavaClass(), testMethods, new Spanner.Callback() {
 
             public Trial currentTrail;
+
+            @Override
+            public void onStart() {
+                /* Ignore */
+            }
 
             @Override
             public void trialStarted(Trial trial) {
@@ -145,7 +151,7 @@ public class SpannerRunner extends Runner {
                     if (absChange > benchmarkConfiguration.getBaselineFailure()) {
                         runNotifier.fireTestFailure(new Failure(spec,
                                 new TrialFailureException(String.format("Change from baseline was to big: %.2f%%. Limit is %.2f%%",
-                                        absChange, benchmarkConfiguration.getBaselineFailure()))));
+                                        absChange * 100, benchmarkConfiguration.getBaselineFailure() * 100))));
                     }
                 }
                 runNotifier.fireTestFinished(spec);
@@ -203,6 +209,16 @@ public class SpannerRunner extends Runner {
                 /* Ignore */
             }
 
+            @Override
+            public void onComplete() {
+                /* Ignore */
+            }
+
+            @Override
+            public void onError(Exception error) {
+                throw new RuntimeException(error);
+            }
+
             private Description getDescription(Trial trial) {
                 Method method = trial.experiment().instrumentation().benchmarkMethod();
                 return Description.createTestDescription(testClass.getJavaClass(), method.getName());
@@ -218,7 +234,7 @@ public class SpannerRunner extends Runner {
     }
 
     private String formatBenchmarkChange(Trial trial) {
-        Double change = trial.getChangeFromBaseline();
+        Double change = trial.getChangeFromBaseline() * 100;
         if (change == null) return "";
         return String.format("[%s%.2f%%]", change > 0 ? "+" : "", change);
     }
