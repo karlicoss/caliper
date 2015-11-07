@@ -1,5 +1,4 @@
-Spanner
-=====
+![Spanner logo](logo.png)
 
 Spanner is a micro benchmarking framework designed to run on the Android platform.
 
@@ -33,12 +32,14 @@ dependencies {
 }
 ```
 
+## Creating a benchmark
+
+* See an example of a standalone benchmark [here](https://github.com/cmelchior/spanner/blob/master/sample/src/main/java/dk/ilios/spanner/example/ActivityBenchmarks.java).
+* See an example of a JUnit benchmark [here](https://github.com/cmelchior/spanner/blob/master/sample/src/androidTest/java/dk/ilios/spanner/UnitTestBenchmarks.java).
+
 ## Benchmarks as unit tests
 
-Spanner provides a custom JUnit4 runner that makes it possible to run benchmarks
-as part of the JUnit framework. To use this feature you need to add the 
-following dependencies manually:
-
+To run Spanner benchmarks as JUnit4 tests you need to add the following dependencies manually:
 
 ```
 androidTestCompile 'com.android.support:support-annotations:23.0.1'
@@ -59,11 +60,6 @@ permission in AndroidManifest.xml:
 ```
 <uses-permission android:name="android.permission.INTERNET" />
 ```
-
-## Creating a benchmark
-
-* See an example of a standalone benchmark [here](https://github.com/cmelchior/spanner/blob/master/sample/src/main/java/dk/ilios/spanner/example/ActivityBenchmarks.java).
-* See an example of a JUnit benchmark [here](https://github.com/cmelchior/spanner/blob/master/sample/src/androidTest/java/dk/ilios/spanner/UnitTestBenchmarks.java).
 
 ## Benchmark results (TODO)
 
