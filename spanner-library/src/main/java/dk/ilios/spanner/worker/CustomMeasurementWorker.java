@@ -16,14 +16,17 @@
 
 package dk.ilios.spanner.worker;
 
+import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.SortedMap;
 
 import dk.ilios.spanner.CustomMeasurement;
 import dk.ilios.spanner.internal.CommonInstrumentOptions;
+import dk.ilios.spanner.internal.benchmark.BenchmarkClass;
 import dk.ilios.spanner.model.Measurement;
 import dk.ilios.spanner.model.Value;
 import dk.ilios.spanner.util.Util;
@@ -36,11 +39,12 @@ public final class CustomMeasurementWorker extends Worker {
     private final String unit;
     private final String description;
 
-    public CustomMeasurementWorker(Object benchmarkClassInstance,
-                                   Method benchmarkMethod,
-                                   Map<String, String> workerOptions,
-                                   ImmutableSortedMap<String, String> userParameters) {
-        super(benchmarkClassInstance, benchmarkMethod, userParameters);
+    public CustomMeasurementWorker(BenchmarkClass benchmarkClass,
+                         Method method,
+                         Ticker ticker,
+                         Map<String, String> workerOptions,
+                         SortedMap<String, String> userParameters) {
+        super(benchmarkClass.getInstance(), method, userParameters);
         this.options = new Options(workerOptions);
         CustomMeasurement annotation = benchmarkMethod.getAnnotation(CustomMeasurement.class);
         this.unit = annotation.units();

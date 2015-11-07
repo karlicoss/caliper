@@ -32,6 +32,7 @@ import dk.ilios.spanner.exception.SkipThisScenarioException;
 import dk.ilios.spanner.exception.UserCodeException;
 import dk.ilios.spanner.internal.trial.TrialSchedulingPolicy;
 import dk.ilios.spanner.model.Measurement;
+import dk.ilios.spanner.util.ShortDuration;
 import dk.ilios.spanner.util.Util;
 import dk.ilios.spanner.worker.CustomMeasurementWorker;
 import dk.ilios.spanner.worker.Worker;
@@ -43,6 +44,12 @@ import static com.google.common.base.Throwables.propagateIfInstanceOf;
  * itself returns the value.
  */
 public final class CustomMeasurementInstrument extends Instrument {
+
+    private final ShortDuration timerGranularityNanoSec;
+
+    public CustomMeasurementInstrument(ShortDuration timerGranularityNanoSec) {
+        this.timerGranularityNanoSec = timerGranularityNanoSec;
+    }
 
     @Override
     public boolean isBenchmarkMethod(Method method) {
@@ -110,7 +117,9 @@ public final class CustomMeasurementInstrument extends Instrument {
         @Override
         public ImmutableMap<String, String> workerOptions() {
             String key = CommonInstrumentOptions.GC_BEFORE_EACH.getKey();
-            return ImmutableMap.of(key, options.get(key));
+//            return ImmutableMap.of(key, options.get(key));
+            return ImmutableMap.of(key, "true");
+
         }
 
         @Override

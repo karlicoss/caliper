@@ -65,6 +65,11 @@ public class AndroidExperimentSelector implements ExperimentSelector {
             for (Instrument instrument : instruments) { // of instruments
                 for (Method method : benchmarkClass.getMethods()) { // of methods
                     for (List<String> userParamsChoice : cartesian(userParameters)) { // of parameters
+                        // Ignore incompatible combinations of Instruments and benchmark methods
+                        if (!instrument.isBenchmarkMethod(method)) {
+                            continue;
+                        }
+
                         ImmutableMap<String, String> experimentBenchmarkParameters = zip(userParameters.keySet(), userParamsChoice);
                         Instrument.Instrumentation instrumentation = instrument.createInstrumentation(method);
                         Experiment experiment = new Experiment(instrumentation, experimentBenchmarkParameters);

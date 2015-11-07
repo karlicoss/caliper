@@ -25,6 +25,7 @@ import java.util.Map;
 
 import dk.ilios.spanner.Benchmark;
 import dk.ilios.spanner.BenchmarkConfiguration;
+import dk.ilios.spanner.CustomMeasurement;
 import dk.ilios.spanner.Spanner;
 import dk.ilios.spanner.SpannerConfig;
 import dk.ilios.spanner.exception.TrialFailureException;
@@ -85,6 +86,11 @@ public class SpannerRunner extends Runner {
             if (classMethod.getAnnotation(Benchmark.class) != null) {
                 testMethods.add(classMethod);
             }
+
+            if (classMethod.getAnnotation(CustomMeasurement.class) != null) {
+                testMethods.add(classMethod);
+            }
+
             if (classMethod.getAnnotation(Ignore.class) != null) {
                 testMethods.remove(classMethod);
             }
@@ -226,7 +232,7 @@ public class SpannerRunner extends Runner {
 
             private Description getDescription(Trial trial, double result) {
                 Method method = trial.experiment().instrumentation().benchmarkMethod();
-                String resultString = String.format(" [%.2f ns.]", result);
+                String resultString = String.format(" [%.2f %s.]", result, trial.getUnit().toLowerCase());
                 resultString += formatBenchmarkChange(trial);
                 return Description.createTestDescription(testClass.getJavaClass(), method.getName() + resultString);
             }

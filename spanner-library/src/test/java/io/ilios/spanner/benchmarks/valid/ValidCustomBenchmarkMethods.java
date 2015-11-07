@@ -17,40 +17,23 @@
 
 package io.ilios.spanner.benchmarks.valid;
 
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import dk.ilios.spanner.Benchmark;
+import dk.ilios.spanner.CustomMeasurement;
 import dk.ilios.spanner.junit.SpannerRunner;
 
 @RunWith(SpannerRunner.class)
-public class ValidBenchmarkMethods {
+public class ValidCustomBenchmarkMethods {
 
-    @Benchmark
-    public void noParams() {
-        sleep(10);
-    }
-
-    @Benchmark
-    public void intReps(int reps) {
-        sleep(10);
-    }
-
-    @Benchmark
-    public void longReps(long reps) {
-        sleep(10);
-    }
-
-    @Benchmark
-    public boolean anyReturnType(int reps) {
-        sleep(10);
-        return false;
-    }
-
-    private void sleep(long time) {
+    @CustomMeasurement
+    public double noParams() {
         try {
-            Thread.sleep(time);
+            Thread.sleep(10);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+        return 0;
     }
 }

@@ -121,7 +121,7 @@ public class Spanner {
             SpannerConfigLoader configLoader = new SpannerConfigLoader(options);
             SpannerConfiguration config = configLoader.loadOrCreate();
 
-            ImmutableSet<Instrument> instruments = getInstruments(options, config);
+            ImmutableSet<Instrument> instruments = getInstruments(benchmarkConfig, config);
 
             int poolSize = Integer.parseInt(config.properties().get(RUNNER_MAX_PARALLELISM_OPTION));
             ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(poolSize));
@@ -202,16 +202,17 @@ public class Spanner {
         }
     }
 
-    public ImmutableSet<Instrument> getInstruments(SpannerOptions options, final SpannerConfiguration config) throws InvalidCommandException {
+    public ImmutableSet<Instrument> getInstruments(SpannerConfig benchmarkConfig, final SpannerConfiguration config) throws InvalidCommandException {
         ImmutableSet.Builder<Instrument> builder = ImmutableSet.builder();
-        ImmutableSet<String> configuredInstruments = config.getConfiguredInstruments();
-        for (final String instrumentName : options.instrumentNames()) {
-            if (!configuredInstruments.contains(instrumentName)) {
-                throw new InvalidCommandException("%s is not a configured instrument (%s). "
-                        + "use --print-config to see the configured instruments.",
-                        instrumentName, configuredInstruments);
-            }
-            final InstrumentConfig instrumentConfig = config.getInstrumentConfig(instrumentName);
+        Set<Class<? extends Instrument>> configuredInstruments = benchmarkConfig.getInstruments();
+        for (Class<? extends Instrument> clazz : configuredInstruments) {
+            //FIXME Add back support for configuring the instruments
+//            if (!configuredInstruments.contains(instrumentName)) {
+//                throw new InvalidCommandException("%s is not a configured instrument (%s). "
+//                        + "use --print-config to see the configured instruments.",
+//                        instrumentName, configuredInstruments);
+//            }
+//            final InstrumentConfig instrumentConfig = config.getInstrumentConfig(instrumentName);
 //                Injector instrumentInjector = injector.createChildInjector(new AbstractModule() {
 //                    @Override protected void configure() {
 //                        bind(InstrumentConfig.class).toInstance(instrumentConfig);
@@ -226,15 +227,13 @@ public class Spanner {
 //                        return instrumentName;
 //                    }
 //                });
-            String className = instrumentConfig.className();
+//            String className = instrumentConfig.className();
             try {
-                Class<? extends Instrument> clazz = Util.lenientClassForName(className).asSubclass(Instrument.class);
+//                Class<? extends Instrument> clazz = Util.lenientClassForName(className).asSubclass(Instrument.class);
                 ShortDuration timerGranularity = new NanoTimeGranularityTester().testNanoTimeGranularity();
                 Instrument instrument = (Instrument) clazz.getDeclaredConstructors()[0].newInstance(timerGranularity);
                 instrument.setOptions(config.properties());
                 builder.add(instrument);
-            } catch (ClassNotFoundException e) {
-                callback.onError(new InvalidCommandException("Cannot find instrument class '%s'", className));
             } catch (InstantiationException e) {
                 callback.onError(e);
             } catch (IllegalAccessException e) {

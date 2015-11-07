@@ -201,8 +201,12 @@ public final class Trial {
         return (oldMedian - newMedian) / oldMedian;
     }
 
-    public TimeUnit getUnit() {
-        return TimeUnit.NANOSECONDS;
+    public String getUnit() {
+        if (measurements.size() == 0) {
+            return "";
+        } else {
+            return measurements.get(0).value().unit();
+        }
     }
 
     private void checkIsComplete() {

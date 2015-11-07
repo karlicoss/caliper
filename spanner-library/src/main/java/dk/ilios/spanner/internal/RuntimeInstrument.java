@@ -93,8 +93,7 @@ public class RuntimeInstrument extends Instrument {
     }
 
     @Override
-    public Instrumentation createInstrumentation(Method benchmarkMethod)
-            throws InvalidBenchmarkException {
+    public Instrumentation createInstrumentation(Method benchmarkMethod) throws InvalidBenchmarkException {
         checkNotNull(benchmarkMethod);
         checkArgument(isBenchmarkMethod(benchmarkMethod));
         if (Util.isStatic(benchmarkMethod)) {

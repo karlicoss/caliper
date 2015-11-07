@@ -3,11 +3,22 @@ package dk.ilios.spanner;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import dk.ilios.spanner.internal.CustomMeasurementInstrument;
+import dk.ilios.spanner.internal.Instrument;
+import dk.ilios.spanner.internal.RuntimeInstrument;
 
 /**
  * Class for adding custom configuration of a Spanner run.
  */
 public class SpannerConfig {
+
+    private static final Class<? extends Instrument> RUNTIME_INSTRUMENT = RuntimeInstrument.class;
+    private static final Class<? extends Instrument> CUSTOM_INSTRUMENT = CustomMeasurementInstrument.class;
 
     private final File resultsFolder;
     private final File baseLineFile;
@@ -17,6 +28,7 @@ public class SpannerConfig {
     private final String apiKey;
     private final boolean uploadResults;
     private float baselineFailure;
+    private Set<Class<? extends Instrument>> instruments;
 
     private SpannerConfig(Builder builder) {
         this.resultsFolder = builder.resultsFolder;
@@ -27,6 +39,9 @@ public class SpannerConfig {
         this.uploadUrl = builder.uploadUrl;
         this.apiKey = builder.apiKey;
         this.baselineFailure = builder.baselineFailure;
+        this.instruments = new HashSet<>(2);
+        instruments.add(RUNTIME_INSTRUMENT);
+        instruments.add(CUSTOM_INSTRUMENT);
     }
 
     public File getResultsFolder() {
@@ -61,6 +76,9 @@ public class SpannerConfig {
         return baselineFailure;
     }
 
+    public Set<Class<? extends Instrument>> getInstruments() {
+        return instruments;
+    }
     /**
      * Builder for fluent construction of a SpannerConfig object.
      */
@@ -91,6 +109,7 @@ public class SpannerConfig {
          * @return Builder object.
          */
         public Builder saveResults(File dir) {
+            dir.mkdirs();
             checkValidWritableFolder(dir);
             this.resultsFolder = dir;
             return this;
