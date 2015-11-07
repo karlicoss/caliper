@@ -15,7 +15,7 @@ Stable releases of Spanner is available on [JCenter](https://bintray.com/cmelchi
 
 ```
 dependencies {
-  compile 'dk.ilios:spanner:0.2.0'
+  compile 'dk.ilios:spanner:x.y.z' // No stable release yet
 }
 ```
 
@@ -29,7 +29,7 @@ repositories {
 }
 
 dependencies {
-  compile 'dk.ilios:spanner:0.2.0-SNAPSHOT'
+  compile 'dk.ilios:spanner:0.2.1-SNAPSHOT'
 }
 ```
 
