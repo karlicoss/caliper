@@ -29,7 +29,7 @@ repositories {
 }
 
 dependencies {
-  compile 'dk.ilios:spanner:0.2.1-SNAPSHOT'
+  compile 'dk.ilios:spanner:0.2.0-SNAPSHOT'
 }
 ```
 
@@ -201,3 +201,4 @@ Androids.
 ## Resources
 
 - http://jeremymanson.blogspot.dk/2009/12/allocation-instrumenter-for-java_10.html
+- https://groups.google.com/forum/#!topic/mechanical-sympathy/m4opvy4xq3U

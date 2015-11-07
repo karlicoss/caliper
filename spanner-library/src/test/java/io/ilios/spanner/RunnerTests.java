@@ -11,6 +11,7 @@ import dk.ilios.spanner.SpannerCallbackAdapter;
 import io.ilios.spanner.benchmarks.invalid.InvalidParameterBenchmark;
 import io.ilios.spanner.benchmarks.invalid.PrivateBenchmark;
 import io.ilios.spanner.benchmarks.invalid.StaticBenchmark;
+import io.ilios.spanner.benchmarks.valid.DefaultConfig;
 import io.ilios.spanner.benchmarks.valid.Empty;
 import io.ilios.spanner.benchmarks.valid.ValidBenchmarkMethods;
 
@@ -51,6 +52,23 @@ public class RunnerTests {
         awaitOrFail(benchmarkLatch);
         assertTrue(benchmarkDone.get());
     }
+
+    @Test
+    public void testDefaultConfigBenchmarkClass() {
+        final CountDownLatch benchmarkLatch = new CountDownLatch(1);
+        final AtomicBoolean benchmarkDone = new AtomicBoolean(false);
+        Spanner.runAllBenchmarks(DefaultConfig.class, new SpannerCallbackAdapter() {
+            @Override
+            public void onComplete() {
+                benchmarkDone.set(true);
+                benchmarkLatch.countDown();
+            }
+        });
+        awaitOrFail(benchmarkLatch);
+        assertTrue(benchmarkDone.get());
+    }
+
+
 
     @Test
     public void testValidBenchmarkMethodsThrows() {

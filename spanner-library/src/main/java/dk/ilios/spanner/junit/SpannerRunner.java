@@ -234,9 +234,12 @@ public class SpannerRunner extends Runner {
     }
 
     private String formatBenchmarkChange(Trial trial) {
-        Double change = trial.getChangeFromBaseline() * 100;
-        if (change == null) return "";
-        return String.format("[%s%.2f%%]", change > 0 ? "+" : "", change);
+        if (trial.hasBaseline()) {
+            Double change = trial.getChangeFromBaseline() * 100;
+            return String.format("[%s%.2f%%]", change > 0 ? "+" : "", change);
+        } else {
+            return "";
+        }
     }
 
     private String getDescription(Trial trial) {

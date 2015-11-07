@@ -106,6 +106,9 @@ public class SpannerConfig {
          */
         public Builder useBaseline(File file) {
             checkNotNull(file, "Baseline file was null");
+            if (file.isDirectory()) {
+                throw new IllegalArgumentException("File is a directory, not a baseline file: " + file);
+            }
             this.baseLineFile = file;
             return this;
         }

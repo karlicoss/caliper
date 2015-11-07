@@ -27,7 +27,7 @@ public class ConfigurationTests {
         assertEquals(0.2f, defaultConfig.getBaselineFailure(), 0);
         assertFalse(defaultConfig.isUploadResults());
         assertTrue(defaultConfig.warnIfWrongTestGranularity());
-        assertFalse(defaultConfig.createBaseline());
+        assertEquals(null, defaultConfig.getBaselineOutputFile());
         assertEquals(new URL("https://microbenchmarks.appspot.com"), defaultConfig.getUploadUrl());
     }
 
@@ -62,7 +62,7 @@ public class ConfigurationTests {
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            builder.saveResults(folder);
+            builder.useBaseline(folder);
             fail();
         } catch (IllegalArgumentException ignored) {
         }
