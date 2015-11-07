@@ -8,7 +8,7 @@
 
 **Installing a local SNAPSHOT**
 
-    > ./gradlew spanner:publishToMavenLocal
+    > ./gradlew spanner:build spanner:publishToMavenLocal
 
 **Publishing a remote SNAPSHOT**
  

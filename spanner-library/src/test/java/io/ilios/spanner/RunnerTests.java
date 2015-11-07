@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import dk.ilios.spanner.Spanner;
 import dk.ilios.spanner.SpannerCallbackAdapter;
+import dk.ilios.spanner.internal.InvalidBenchmarkException;
 import io.ilios.spanner.benchmarks.invalid.InvalidParameterBenchmark;
 import io.ilios.spanner.benchmarks.invalid.PrivateBenchmark;
 import io.ilios.spanner.benchmarks.invalid.StaticBenchmark;
