@@ -12,7 +12,7 @@
  * the License.
  */
 
-package dk.ilios.spanner.internal.trial;
+package dk.ilios.spanner.trial;
 
 import java.util.concurrent.Callable;
 

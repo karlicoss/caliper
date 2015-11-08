@@ -38,9 +38,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 
+import dk.ilios.spanner.config.InstrumentConfig;
 import dk.ilios.spanner.config.SpannerConfiguration;
 import dk.ilios.spanner.config.SpannerConfigLoader;
-import dk.ilios.spanner.config.InstrumentConfig;
 import dk.ilios.spanner.config.InvalidConfigurationException;
 import dk.ilios.spanner.exception.InvalidCommandException;
 import dk.ilios.spanner.http.HttpUploader;
@@ -50,7 +50,7 @@ import dk.ilios.spanner.internal.ExperimentSelector;
 import dk.ilios.spanner.internal.ExperimentingSpannerRun;
 import dk.ilios.spanner.internal.Instrument;
 import dk.ilios.spanner.internal.InvalidBenchmarkException;
-import dk.ilios.spanner.internal.benchmark.BenchmarkClass;
+import dk.ilios.spanner.benchmark.BenchmarkClass;
 import dk.ilios.spanner.json.AnnotationExclusionStrategy;
 import dk.ilios.spanner.json.InstantTypeAdapter;
 import dk.ilios.spanner.log.AndroidStdOut;
@@ -104,7 +104,6 @@ public class Spanner {
         }
     }
 
-
     private Spanner(BenchmarkClass benchmarkClass, Callback callback) {
         this.benchmarkClass = benchmarkClass;
         this.callback = callback;
@@ -121,7 +120,7 @@ public class Spanner {
             SpannerConfigLoader configLoader = new SpannerConfigLoader(options);
             SpannerConfiguration config = configLoader.loadOrCreate();
 
-            ImmutableSet<Instrument> instruments = getInstruments(options, config);
+            ImmutableSet<Instrument> instruments = getInstruments(benchmarkConfig, config);
 
             int poolSize = Integer.parseInt(config.properties().get(RUNNER_MAX_PARALLELISM_OPTION));
             ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(poolSize));
@@ -167,7 +166,9 @@ public class Spanner {
                 processors.add(dumper);
             }
             if (benchmarkConfig.getBaselineOutputFile() != null) {
-                OutputFileDumper dumper = new OutputFileDumper(runInfo, benchmarkClass, gson, benchmarkConfig.getBaselineOutputFile());
+                File baselineDir = new File(benchmarkConfig.getBaselineOutputFile().getParent());
+                String baselineFilename = benchmarkConfig.getBaselineOutputFile().getName();
+                OutputFileDumper dumper = new OutputFileDumper(runInfo, benchmarkClass, gson, baselineDir, baselineFilename);
                 processors.add(dumper);
             }
             if (benchmarkConfig.isUploadResults()) {
@@ -202,16 +203,17 @@ public class Spanner {
         }
     }
 
-    public ImmutableSet<Instrument> getInstruments(SpannerOptions options, final SpannerConfiguration config) throws InvalidCommandException {
+    public ImmutableSet<Instrument> getInstruments(SpannerConfig benchmarkConfig, final SpannerConfiguration config) throws InvalidCommandException {
         ImmutableSet.Builder<Instrument> builder = ImmutableSet.builder();
-        ImmutableSet<String> configuredInstruments = config.getConfiguredInstruments();
-        for (final String instrumentName : options.instrumentNames()) {
-            if (!configuredInstruments.contains(instrumentName)) {
-                throw new InvalidCommandException("%s is not a configured instrument (%s). "
-                        + "use --print-config to see the configured instruments.",
-                        instrumentName, configuredInstruments);
-            }
-            final InstrumentConfig instrumentConfig = config.getInstrumentConfig(instrumentName);
+        Set<InstrumentConfig> configuredInstruments = benchmarkConfig.instrumentConfigurations();
+        for (InstrumentConfig instrumentConfig : configuredInstruments) {
+            //FIXME Add back support for configuring the instruments
+//            if (!configuredInstruments.contains(instrumentName)) {
+//                throw new InvalidCommandException("%s is not a configured instrument (%s). "
+//                        + "use --print-config to see the configured instruments.",
+//                        instrumentName, configuredInstruments);
+//            }
+//            final InstrumentConfig instrumentConfig = config.getInstrumentConfig(instrumentName);
 //                Injector instrumentInjector = injector.createChildInjector(new AbstractModule() {
 //                    @Override protected void configure() {
 //                        bind(InstrumentConfig.class).toInstance(instrumentConfig);
@@ -226,15 +228,13 @@ public class Spanner {
 //                        return instrumentName;
 //                    }
 //                });
-            String className = instrumentConfig.className();
+//            String className = instrumentConfig.className();
             try {
-                Class<? extends Instrument> clazz = Util.lenientClassForName(className).asSubclass(Instrument.class);
+                Class<? extends Instrument> clazz = instrumentConfig.getInstrumentClass();
                 ShortDuration timerGranularity = new NanoTimeGranularityTester().testNanoTimeGranularity();
-                Instrument instrument = (Instrument) clazz.getDeclaredConstructors()[0].newInstance(timerGranularity);
-                instrument.setOptions(config.properties());
+                Instrument instrument = (Instrument) clazz.getDeclaredConstructors()[0].newInstance(
+                        timerGranularity, instrumentConfig);
                 builder.add(instrument);
-            } catch (ClassNotFoundException e) {
-                callback.onError(new InvalidCommandException("Cannot find instrument class '%s'", className));
             } catch (InstantiationException e) {
                 callback.onError(e);
             } catch (IllegalAccessException e) {

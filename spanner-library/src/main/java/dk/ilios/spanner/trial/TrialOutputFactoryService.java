@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package dk.ilios.spanner.internal.trial;
+package dk.ilios.spanner.trial;
 
 import static com.google.common.base.Preconditions.checkArgument;
 

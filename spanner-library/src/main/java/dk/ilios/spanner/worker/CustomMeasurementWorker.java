@@ -16,14 +16,15 @@
 
 package dk.ilios.spanner.worker;
 
+import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSortedMap;
 
 import java.lang.reflect.Method;
-import java.util.Map;
+import java.util.SortedMap;
 
 import dk.ilios.spanner.CustomMeasurement;
-import dk.ilios.spanner.internal.CommonInstrumentOptions;
+import dk.ilios.spanner.benchmark.BenchmarkClass;
+import dk.ilios.spanner.config.CustomConfig;
 import dk.ilios.spanner.model.Measurement;
 import dk.ilios.spanner.model.Value;
 import dk.ilios.spanner.util.Util;
@@ -32,16 +33,16 @@ import dk.ilios.spanner.util.Util;
  * Worker for methods doing their own measurements (custom measurements).
  */
 public final class CustomMeasurementWorker extends Worker {
-    private final Options options;
+    private final CustomConfig options;
     private final String unit;
     private final String description;
 
-    public CustomMeasurementWorker(Object benchmarkClassInstance,
-                                   Method benchmarkMethod,
-                                   Map<String, String> workerOptions,
-                                   ImmutableSortedMap<String, String> userParameters) {
-        super(benchmarkClassInstance, benchmarkMethod, userParameters);
-        this.options = new Options(workerOptions);
+    public CustomMeasurementWorker(BenchmarkClass benchmarkClass,
+                         Method method,
+                         CustomConfig options,
+                         SortedMap<String, String> userParameters) {
+        super(benchmarkClass.getInstance(), method, userParameters);
+        this.options = options;
         CustomMeasurement annotation = benchmarkMethod.getAnnotation(CustomMeasurement.class);
         this.unit = annotation.units();
         this.description = annotation.description();
@@ -49,7 +50,7 @@ public final class CustomMeasurementWorker extends Worker {
 
     @Override
     public void preMeasure(boolean inWarmup) throws Exception {
-        if (options.gcBeforeEach && !inWarmup) {
+        if (options.gcBeforeEachMeasurement() && !inWarmup) {
             Util.forceGc();
         }
     }
@@ -62,14 +63,5 @@ public final class CustomMeasurementWorker extends Worker {
                 .weight(1)
                 .description(description)
                 .build());
-    }
-
-    private static class Options {
-        final boolean gcBeforeEach;
-
-        Options(Map<String, String> options) {
-            String key = CommonInstrumentOptions.GC_BEFORE_EACH.getKey();
-            this.gcBeforeEach = Boolean.parseBoolean(options.get(key));
-        }
     }
 }

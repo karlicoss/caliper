@@ -19,28 +19,27 @@ package io.ilios.spanner.benchmarks.valid;
 
 import org.junit.runner.RunWith;
 
-import java.util.Random;
-
-import dk.ilios.spanner.Benchmark;
 import dk.ilios.spanner.BenchmarkConfiguration;
+import dk.ilios.spanner.CustomMeasurement;
 import dk.ilios.spanner.SpannerConfig;
-import dk.ilios.spanner.config.RuntimeConfig;
+import dk.ilios.spanner.config.CustomConfig;
 import dk.ilios.spanner.junit.SpannerRunner;
 
 @RunWith(SpannerRunner.class)
-public class DefaultConfig {
+public class ValidCustomBenchmarkMethods {
 
-    @Benchmark
-    public void defaultConfig(long reps) {
-        String str;
-        for (long i = 0; i < reps; i++) {
-            str = "";
-            str += "a";
-            str += "b";
-            str += "c";
-            str += "d";
-            str += "e";
-            str += "f";
+    @BenchmarkConfiguration
+    public SpannerConfig config = new SpannerConfig.Builder()
+            .addInstrument(CustomConfig.unittestConfig())
+            .build();
+
+    @CustomMeasurement
+    public double noParams() {
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
+        return 0;
     }
 }

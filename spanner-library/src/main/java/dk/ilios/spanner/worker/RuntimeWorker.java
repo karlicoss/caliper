@@ -16,20 +16,18 @@
 
 package dk.ilios.spanner.worker;
 
-import static java.util.concurrent.TimeUnit.NANOSECONDS;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableSet;
 
 import java.lang.reflect.Method;
-import java.util.Map;
 import java.util.Random;
 import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
 
+import dk.ilios.spanner.benchmark.BenchmarkClass;
+import dk.ilios.spanner.config.RuntimeConfig;
 import dk.ilios.spanner.internal.InvalidBenchmarkException;
-import dk.ilios.spanner.internal.benchmark.BenchmarkClass;
 import dk.ilios.spanner.model.Measurement;
 import dk.ilios.spanner.model.Value;
 import dk.ilios.spanner.util.ShortDuration;
@@ -39,12 +37,13 @@ import dk.ilios.spanner.util.Util;
  * A {@link Worker} base class for micro and pico benchmarks.
  */
 public abstract class RuntimeWorker extends Worker {
+
     @VisibleForTesting
     static final int INITIAL_REPS = 100;
 
     protected final Random random;
     protected final Ticker ticker;
-    protected final Options options;
+    protected final RuntimeConfig options;
     private long totalReps;
     private long totalNanos;
     private long nextReps;
@@ -53,13 +52,12 @@ public abstract class RuntimeWorker extends Worker {
     public RuntimeWorker(BenchmarkClass benchmarkClass,
                          Method method,
                          Ticker ticker,
-                         Map<String, String> workerOptions,
+                         RuntimeConfig options,
                          SortedMap<String, String> userParameters) {
         super(benchmarkClass.getInstance(), method, userParameters);
         this.random = new Random();
-        // TODO(gak): investigate whether or not we can use Stopwatch
         this.ticker = ticker;
-        this.options = new Options(workerOptions);
+        this.options = options;
     }
 
     @Override
@@ -70,8 +68,8 @@ public abstract class RuntimeWorker extends Worker {
 
     @Override
     public void preMeasure(boolean inWarmup) throws Exception {
-        nextReps = calculateTargetReps(totalReps, totalNanos, options.timingIntervalNanos, random.nextGaussian());
-        if (options.gcBeforeEach && !inWarmup) {
+        nextReps = calculateTargetReps(totalReps, totalNanos, TimeUnit.NANOSECONDS.convert(options.timingInterval(), options.timingIntervalUnit()), random.nextGaussian());
+        if (options.gcBeforeEachMeasurement() &&  !inWarmup) {
             Util.forceGc();
         }
     }
@@ -111,9 +109,9 @@ public abstract class RuntimeWorker extends Worker {
         public Micro(BenchmarkClass benchmarkClass,
                      Method method,
                      Ticker ticker,
-                     Map<String, String> workerOptions,
+                     RuntimeConfig options,
                      SortedMap<String, String> userParameters) {
-            super(benchmarkClass, method, ticker, workerOptions, userParameters);
+            super(benchmarkClass, method, ticker, options, userParameters);
         }
 
         @Override
@@ -125,7 +123,7 @@ public abstract class RuntimeWorker extends Worker {
                         + "If this is expected (the benchmarked code is very fast), use a long parameter."
                         + "Otherwise, check your benchmark for errors.",
                         benchmark.getClass(), benchmarkMethod.getName(),
-                        ShortDuration.of(options.timingIntervalNanos, NANOSECONDS));
+                        ShortDuration.of(options.timingInterval(), options.timingIntervalUnit()));
             }
             long before = ticker.read();
             benchmarkMethod.invoke(benchmark, intReps);
@@ -141,9 +139,9 @@ public abstract class RuntimeWorker extends Worker {
         public Pico(BenchmarkClass benchmarkClass,
                     Method method,
                     Ticker ticker,
-                    Map<String, String> workerOptions,
+                    RuntimeConfig config,
                     SortedMap<String, String> userParameters) {
-            super(benchmarkClass, method, ticker, workerOptions, userParameters);
+            super(benchmarkClass, method, ticker, config, userParameters);
         }
 
         @Override
@@ -151,16 +149,6 @@ public abstract class RuntimeWorker extends Worker {
             long before = ticker.read();
             benchmarkMethod.invoke(benchmark, reps);
             return ticker.read() - before;
-        }
-    }
-
-    private static final class Options {
-        long timingIntervalNanos = TimeUnit.MILLISECONDS.toNanos(1000);
-        boolean gcBeforeEach = false;
-
-        Options(Map<String, String> optionMap) {
-//            this.timingIntervalNanos = Long.parseLong(optionMap.get("timingIntervalNanos"));
-//            this.gcBeforeEach = Boolean.parseBoolean(optionMap.get("gcBeforeEach"));
         }
     }
 }

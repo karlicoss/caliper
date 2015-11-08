@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2012 Google Inc.
+ * Copyright (C) 2015 Christian Melchior
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,6 +13,8 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Original author:  gak@google.com (Gregory Kick)
  */
 
 package dk.ilios.spanner.model;
@@ -24,58 +27,59 @@ import java.io.Serializable;
 
 /**
  * A magnitude with units.
- *
- * @author gak@google.com (Gregory Kick)
  */
 public class Value implements Serializable {
-  private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
-  static final Value DEFAULT = new Value();
+    static final Value DEFAULT = new Value();
 
-  public static Value create(double value, String unit) {
-    return new Value(value, checkNotNull(unit));
-  }
-
-  private double magnitude;
-  // TODO(gak): do something smarter than string for units
-  // TODO(gak): give guidelines for how to specify units.  E.g. s or seconds
-  private String unit;
-
-  private Value() {
-    this.magnitude = 0.0;
-    this.unit = "";
-  }
-
-  private Value(double value, String unit) {
-    this.magnitude = value;
-    this.unit = unit;
-  }
-
-  public String unit() {
-    return unit;
-  }
-
-  public double magnitude() {
-    return magnitude;
-  }
-
-  @Override public boolean equals(Object obj) {
-    if (obj == this) {
-      return true;
-    } else if (obj instanceof Value) {
-      Value that = (Value) obj;
-      return this.magnitude == that.magnitude
-          && this.unit.equals(that.unit);
-    } else {
-      return false;
+    public static Value create(double value, String unit) {
+        return new Value(value, checkNotNull(unit));
     }
-  }
 
-  @Override public int hashCode() {
-    return Objects.hashCode(magnitude, unit);
-  }
+    private double magnitude;
+    // TODO(gak): do something smarter than string for units
+    // TODO(gak): give guidelines for how to specify units.  E.g. s or seconds
+    private String unit;
 
-  @Override public String toString() {
-    return new StringBuilder().append(magnitude).append(unit).toString();
-  }
+    private Value() {
+        this.magnitude = 0.0;
+        this.unit = "";
+    }
+
+    private Value(double value, String unit) {
+        this.magnitude = value;
+        this.unit = unit;
+    }
+
+    public String unit() {
+        return unit;
+    }
+
+    public double magnitude() {
+        return magnitude;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        } else if (obj instanceof Value) {
+            Value that = (Value) obj;
+            return this.magnitude == that.magnitude
+                    && this.unit.equals(that.unit);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(magnitude, unit);
+    }
+
+    @Override
+    public String toString() {
+        return new StringBuilder().append(magnitude).append(unit).toString();
+    }
 }

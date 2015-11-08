@@ -8,13 +8,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import dk.ilios.spanner.Spanner;
 import dk.ilios.spanner.SpannerCallbackAdapter;
-import dk.ilios.spanner.internal.InvalidBenchmarkException;
 import io.ilios.spanner.benchmarks.invalid.InvalidParameterBenchmark;
 import io.ilios.spanner.benchmarks.invalid.PrivateBenchmark;
 import io.ilios.spanner.benchmarks.invalid.StaticBenchmark;
 import io.ilios.spanner.benchmarks.valid.DefaultConfig;
 import io.ilios.spanner.benchmarks.valid.Empty;
 import io.ilios.spanner.benchmarks.valid.ValidBenchmarkMethods;
+import io.ilios.spanner.util.RethrowSpannerCallbackAdapter;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -69,10 +69,8 @@ public class RunnerTests {
         assertTrue(benchmarkDone.get());
     }
 
-
-
     @Test
-    public void testValidBenchmarkMethodsThrows() {
+    public void testValidBenchmarkMethods() {
         final CountDownLatch benchmarkLatch = new CountDownLatch(1);
         final AtomicBoolean benchmarkDone = new AtomicBoolean(false);
         Spanner.runAllBenchmarks(ValidBenchmarkMethods.class, new SpannerCallbackAdapter() {

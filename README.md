@@ -1,11 +1,10 @@
-Spanner
-=====
+![Spanner logo](logo.png)
 
-Spanner is a micro benchmarking framework designed to run on the Android platform.
+Spanner is a micro benchmarking framework designed to run on Android.
 
-It is a fork of the original Caliper project for Java started by Google: code.google.com/p/caliper
+It is a fork of the Caliper project for Java started by Google: code.google.com/p/caliper
 
-WARNING: This dust is still settling and any API might change at any point (05-11-2015).
+WARNING: The dust is still settling and any API might change at any point (05-11-2015).
 
 # Getting started
 
@@ -29,16 +28,18 @@ repositories {
 }
 
 dependencies {
-  compile 'dk.ilios:spanner:0.2.1-SNAPSHOT'
+  compile 'dk.ilios:spanner:0.3.0-SNAPSHOT'
 }
 ```
 
+## Creating a benchmark
+
+* See an example of a standalone benchmark [here](https://github.com/cmelchior/spanner/blob/master/sample/src/main/java/dk/ilios/spanner/example/ActivityBenchmarks.java).
+* See an example of a JUnit benchmark [here](https://github.com/cmelchior/spanner/blob/master/sample/src/androidTest/java/dk/ilios/spanner/UnitTestBenchmarks.java).
+
 ## Benchmarks as unit tests
 
-Spanner provides a custom JUnit4 runner that makes it possible to run benchmarks
-as part of the JUnit framework. To use this feature you need to add the 
-following dependencies manually:
-
+To run Spanner benchmarks as JUnit4 tests you need to add the following dependencies manually:
 
 ```
 androidTestCompile 'com.android.support:support-annotations:23.0.1'
@@ -59,11 +60,6 @@ permission in AndroidManifest.xml:
 ```
 <uses-permission android:name="android.permission.INTERNET" />
 ```
-
-## Creating a benchmark
-
-* See an example of a standalone benchmark [here](https://github.com/cmelchior/spanner/blob/master/sample/src/main/java/dk/ilios/spanner/example/ActivityBenchmarks.java).
-* See an example of a JUnit benchmark [here](https://github.com/cmelchior/spanner/blob/master/sample/src/androidTest/java/dk/ilios/spanner/UnitTestBenchmarks.java).
 
 ## Benchmark results (TODO)
 
@@ -177,12 +173,12 @@ running on ART
 
 * Compiler can reorder/remove code.
 * Compile to native code.
+* Loop hoisting
 
 ### Interpreting results (TODO)
 
 * Be mindful of measured overhead.
 * Results do not say anything about the absolute speed.
-
 
 ### Math (TODO)
 

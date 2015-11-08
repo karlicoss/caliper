@@ -16,23 +16,24 @@
 
 package dk.ilios.spanner.worker;
 
-import static java.util.concurrent.TimeUnit.NANOSECONDS;
-
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 
 import java.lang.reflect.Method;
-import java.util.Map;
+import java.util.SortedMap;
 
 import dk.ilios.spanner.AfterRep;
 import dk.ilios.spanner.BeforeRep;
-import dk.ilios.spanner.internal.benchmark.BenchmarkClass;
+import dk.ilios.spanner.benchmark.BenchmarkClass;
+import dk.ilios.spanner.config.RuntimeConfig;
 import dk.ilios.spanner.model.Measurement;
 import dk.ilios.spanner.model.Value;
-import dk.ilios.spanner.util.Util;
 import dk.ilios.spanner.util.Reflection;
+import dk.ilios.spanner.util.Util;
+
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 /**
  * The {@link Worker} implementation for macro benchmarks, i.e benchmarks which runtime are measured in milliseconds,
@@ -47,14 +48,14 @@ public class MacrobenchmarkWorker extends Worker {
     public MacrobenchmarkWorker(BenchmarkClass benchmarkClass,
                                 Method method,
                                 Ticker ticker,
-                                Map<String, String> workerOptions,
-                                ImmutableSortedMap<String, String> userParameters) {
+                                RuntimeConfig options,
+                                SortedMap<String, String> userParameters) {
 
         super(benchmarkClass.getInstance(), method, userParameters);
         this.stopwatch = Stopwatch.createUnstarted(ticker);
         this.beforeRepMethods = Reflection.getAnnotatedMethods(benchmark.getClass(), BeforeRep.class);
         this.afterRepMethods = Reflection.getAnnotatedMethods(benchmark.getClass(), AfterRep.class);
-        this.gcBeforeEach = Boolean.parseBoolean(workerOptions.get("gcBeforeEach"));
+        this.gcBeforeEach = options.gcBeforeEachMeasurement();
     }
 
     @Override

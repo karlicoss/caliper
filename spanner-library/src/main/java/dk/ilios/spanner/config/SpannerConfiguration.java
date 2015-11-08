@@ -18,10 +18,6 @@
 
 package dk.ilios.spanner.config;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Objects;
 import com.google.common.base.Strings;
@@ -42,6 +38,9 @@ import java.util.regex.Pattern;
 
 import dk.ilios.spanner.output.ResultProcessor;
 import dk.ilios.spanner.util.Util;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * Represents the global Gauge configuration, which is shared across all tests.
@@ -142,18 +141,6 @@ public final class SpannerConfiguration {
             }
         }
         return resultBuilder.build();
-    }
-
-    public InstrumentConfig getInstrumentConfig(String name) {
-        checkNotNull(name);
-        ImmutableMap<String, String> instrumentGroupMap = subgroupMap(properties, "instrument");
-        ImmutableMap<String, String> insrumentMap = subgroupMap(instrumentGroupMap, name);
-        String className = insrumentMap.get("class");
-        checkArgument(className != null, "no instrument configured named %s", name);
-        return new InstrumentConfig.Builder()
-                .className(className)
-                .addAllOptions(subgroupMap(insrumentMap, "options"))
-                .build();
     }
 
     public ImmutableSet<Class<? extends ResultProcessor>> getConfiguredResultProcessors() {

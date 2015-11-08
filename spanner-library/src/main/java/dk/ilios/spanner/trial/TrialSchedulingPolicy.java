@@ -12,7 +12,7 @@
  * the License.
  */
 
-package dk.ilios.spanner.internal.trial;
+package dk.ilios.spanner.trial;
 
 /**
  * The scheduling policy for a particular trial with regard to other trials

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2011 Google Inc.
+ * Copyright (C) 2015 Christian Melchior.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +27,8 @@ import java.lang.annotation.Target;
  * responsible for taking measurements.
  *
  * The method should take no parameters and return a double, which is the measured value.
+ *
+ * A benchmark class cannot mix @Benchmark and @CustomMeasurement methods.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)

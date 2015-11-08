@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2011 Google Inc.
+ * Copyright (C) 2015 Christian Melchior.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +15,7 @@
  * limitations under the License.
  */
 
-package dk.ilios.spanner.internal.benchmark;
+package dk.ilios.spanner.benchmark;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;
@@ -38,6 +39,7 @@ import dk.ilios.spanner.AfterExperiment;
 import dk.ilios.spanner.BeforeExperiment;
 import dk.ilios.spanner.Benchmark;
 import dk.ilios.spanner.BenchmarkConfiguration;
+import dk.ilios.spanner.CustomMeasurement;
 import dk.ilios.spanner.SpannerConfig;
 import dk.ilios.spanner.Param;
 import dk.ilios.spanner.exception.InvalidCommandException;
@@ -115,39 +117,64 @@ public final class BenchmarkClass {
         for (Method method : methods) {
 
             // Verify annotations
-            if (!method.isAnnotationPresent(Benchmark.class)) {
-                throw new InvalidBenchmarkException(String.format("Method %s isn't a benchmark method. " +
-                                "It is missing @Benchmark.", method.getName()));
+            boolean isBenchmarkMethod = method.isAnnotationPresent(Benchmark.class);
+            boolean isCustomMeasurementMethod = method.isAnnotationPresent(CustomMeasurement.class);
+
+            if (isBenchmarkMethod && isCustomMeasurementMethod) {
+                throw new InvalidBenchmarkException("Cannot mix @Benchmark and @CustomMeasurement on the same method");
             }
 
-            // Verify modifiers
-            int modifiers = method.getModifiers();
-            if (modifiers != Modifier.PUBLIC) {
-                throw new InvalidBenchmarkException("Benchmark methods must only be public: " + method.getName());
+            if (isBenchmarkMethod) {
+                verifyBenchmarkMethod(method);
+            } else if (isCustomMeasurementMethod) {
+                verifyCustomMeasurementMethod(method);
+            } else {
+                throw new InvalidBenchmarkException(String.format("Method %s is not a valid benchmark method.", method.getName()));
             }
+        }
+    }
 
-            // Verify parameter types
-            Class<?>[] parameterTypes = method.getParameterTypes();
-            if (parameterTypes.length > 1) {
+    private void verifyBenchmarkMethod(Method method) throws InvalidBenchmarkException {
+        int modifiers = method.getModifiers();
+        if (modifiers != Modifier.PUBLIC) {
+            throw new InvalidBenchmarkException("Benchmark methods must only be public: " + method.getName());
+        }
+
+        // Verify parameter types
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        if (parameterTypes.length > 1) {
+            throw new InvalidBenchmarkException("Only 1 int or long parameter allowed: " + method.getName());
+        }
+
+        for (Class<?> parameterClass : parameterTypes) {
+            if (!parameterClass.equals(int.class) && !parameterClass.equals(long.class)) {
                 throw new InvalidBenchmarkException("Only 1 int or long parameter allowed: " + method.getName());
             }
+        }
+    }
 
-            for (Class<?> parameterClass : parameterTypes) {
-                if (!parameterClass.equals(int.class) && !parameterClass.equals(long.class)) {
-                    throw new InvalidBenchmarkException("Only 1 int or long parameter allowed: " + method.getName());
-                }
-            }
+    private void verifyCustomMeasurementMethod(Method method) throws InvalidBenchmarkException {
+        int modifiers = method.getModifiers();
+        if (modifiers != Modifier.PUBLIC) {
+            throw new InvalidBenchmarkException("Benchmark methods must only be public: " + method.getName());
+        }
 
-            // Verify return type
-            // Right now we just ignore any return type.
-            // TODO Check return type when adding back support for ArbitraryMeasurements
+        // Verify parameter types
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        if (parameterTypes.length > 0) {
+            throw new InvalidBenchmarkException("Custom measurement methods must not have parameters: " + method.getName());
+        }
+
+        Class<?> returnType = method.getReturnType();
+        if (!returnType.equals(double.class)) {
+            throw new InvalidBenchmarkException("Custom measurement methods must return a double: " + method.getName());
         }
     }
 
     private List<Method> findAllBenchmarkMethods(Class<?> benchmarkClass) {
         List<Method> benchmarkMethods = new ArrayList<>();
         for (Method method : benchmarkClass.getDeclaredMethods()) {
-            if (method.isAnnotationPresent(Benchmark.class)) {
+            if (method.isAnnotationPresent(Benchmark.class) || method.isAnnotationPresent(CustomMeasurement.class)) {
                 benchmarkMethods.add(method);
             }
         }

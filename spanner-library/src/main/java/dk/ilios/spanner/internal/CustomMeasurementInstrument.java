@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2011 Google Inc.
+ * Copyright (C) 2015 Christian Melchior.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +18,24 @@
 package dk.ilios.spanner.internal;
 
 import com.google.common.base.Optional;
+import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.SortedMap;
 
 import dk.ilios.spanner.CustomMeasurement;
+import dk.ilios.spanner.benchmark.BenchmarkClass;
 import dk.ilios.spanner.bridge.AbstractLogMessageVisitor;
 import dk.ilios.spanner.bridge.StopMeasurementLogMessage;
+import dk.ilios.spanner.config.CustomConfig;
 import dk.ilios.spanner.exception.SkipThisScenarioException;
 import dk.ilios.spanner.exception.UserCodeException;
-import dk.ilios.spanner.internal.trial.TrialSchedulingPolicy;
 import dk.ilios.spanner.model.Measurement;
+import dk.ilios.spanner.trial.TrialSchedulingPolicy;
+import dk.ilios.spanner.util.ShortDuration;
 import dk.ilios.spanner.util.Util;
 import dk.ilios.spanner.worker.CustomMeasurementWorker;
 import dk.ilios.spanner.worker.Worker;
@@ -43,6 +47,15 @@ import static com.google.common.base.Throwables.propagateIfInstanceOf;
  * itself returns the value.
  */
 public final class CustomMeasurementInstrument extends Instrument {
+
+    private final ShortDuration timerGranularityNanoSec;
+    private final CustomConfig configuation;
+
+    public CustomMeasurementInstrument(ShortDuration timerGranularityNanoSec, CustomConfig configuration) {
+        super(configuration.options());
+        this.timerGranularityNanoSec = timerGranularityNanoSec;
+        this.configuation = configuration;
+    }
 
     @Override
     public boolean isBenchmarkMethod(Method method) {
@@ -74,7 +87,7 @@ public final class CustomMeasurementInstrument extends Instrument {
                     "Arbitrary measurement methods must be public: " + benchmarkMethod.getName());
         }
 
-        return new ArbitraryMeasurementInstrumentation(benchmarkMethod);
+        return new CustomMeasurementInstrumentation(benchmarkMethod);
     }
 
     @Override
@@ -84,8 +97,10 @@ public final class CustomMeasurementInstrument extends Instrument {
         return TrialSchedulingPolicy.SERIAL;
     }
 
-    private final class ArbitraryMeasurementInstrumentation extends Instrumentation {
-        protected ArbitraryMeasurementInstrumentation(Method benchmarkMethod) {
+
+    private final class CustomMeasurementInstrumentation extends Instrumentation {
+
+        protected CustomMeasurementInstrumentation(Method benchmarkMethod) {
             super(benchmarkMethod);
         }
 
@@ -103,25 +118,19 @@ public final class CustomMeasurementInstrument extends Instrument {
         }
 
         @Override
-        public Class<? extends Worker> workerClass() {
-            return CustomMeasurementWorker.class;
-        }
-
-        @Override
-        public ImmutableMap<String, String> workerOptions() {
-            String key = CommonInstrumentOptions.GC_BEFORE_EACH.getKey();
-            return ImmutableMap.of(key, options.get(key));
-        }
-
-        @Override
-        MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
+        public MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
             return new SingleMeasurementCollectingVisitor();
         }
-    }
 
-    @Override
-    public ImmutableSet<String> instrumentOptions() {
-        return ImmutableSet.of(CommonInstrumentOptions.GC_BEFORE_EACH.getKey());
+        @Override
+        public Worker createWorker(BenchmarkClass benchmark, Ticker ticker, SortedMap<String, String> userParameters) {
+            return new CustomMeasurementWorker(
+                    benchmark,
+                    benchmarkMethod,
+                    configuation,
+                    userParameters
+            );
+        }
     }
 
     private static final class SingleMeasurementCollectingVisitor extends AbstractLogMessageVisitor
