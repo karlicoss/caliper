@@ -1,10 +1,10 @@
 ![Spanner logo](logo.png)
 
-Spanner is a micro benchmarking framework designed to run on the Android platform.
+Spanner is a micro benchmarking framework designed to run on Android.
 
-It is a fork of the original Caliper project for Java started by Google: code.google.com/p/caliper
+It is a fork of the Caliper project for Java started by Google: code.google.com/p/caliper
 
-WARNING: This dust is still settling and any API might change at any point (05-11-2015).
+WARNING: The dust is still settling and any API might change at any point (05-11-2015).
 
 # Getting started
 
@@ -28,7 +28,7 @@ repositories {
 }
 
 dependencies {
-  compile 'dk.ilios:spanner:0.2.1-SNAPSHOT'
+  compile 'dk.ilios:spanner:0.3.0-SNAPSHOT'
 }
 ```
 
@@ -173,12 +173,12 @@ running on ART
 
 * Compiler can reorder/remove code.
 * Compile to native code.
+* Loop hoisting
 
 ### Interpreting results (TODO)
 
 * Be mindful of measured overhead.
 * Results do not say anything about the absolute speed.
-
 
 ### Math (TODO)
 

@@ -29,10 +29,7 @@ import dk.ilios.spanner.CustomMeasurement;
 import dk.ilios.spanner.Spanner;
 import dk.ilios.spanner.SpannerConfig;
 import dk.ilios.spanner.exception.TrialFailureException;
-import dk.ilios.spanner.internal.InvalidBenchmarkException;
-import dk.ilios.spanner.json.ExcludeFromJson;
 import dk.ilios.spanner.model.Measurement;
-import dk.ilios.spanner.model.Run;
 import dk.ilios.spanner.model.Trial;
 
 /**
@@ -247,10 +244,4 @@ public class SpannerRunner extends Runner {
             return "";
         }
     }
-
-    private String getDescription(Trial trial) {
-        Method method = trial.experiment().instrumentation().benchmarkMethod();
-        return method.getName();
-    }
-
 }

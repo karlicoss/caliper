@@ -18,6 +18,7 @@ package dk.ilios.spanner.internal;
 
 import com.google.common.base.Objects;
 import com.google.common.base.Predicates;
+import com.google.common.base.Ticker;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
@@ -29,10 +30,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 
+import dk.ilios.spanner.benchmark.BenchmarkClass;
 import dk.ilios.spanner.bridge.AbstractLogMessageVisitor;
 import dk.ilios.spanner.bridge.StopMeasurementLogMessage;
-import dk.ilios.spanner.internal.trial.TrialSchedulingPolicy;
+import dk.ilios.spanner.trial.TrialSchedulingPolicy;
 import dk.ilios.spanner.json.ExcludeFromJson;
 import dk.ilios.spanner.model.InstrumentSpec;
 import dk.ilios.spanner.model.Measurement;
@@ -45,8 +48,8 @@ public abstract class Instrument {
     protected Map<String, String> options;
     private String name = getClass().getSimpleName();
 
-    public void setOptions(Map<String, String> options) {
-        this.options = Maps.filterKeys(options, Predicates.in(instrumentOptions()));
+    public Instrument(Map<String, String> options) {
+        this.options = options;
     }
 
     void setInstrumentName(String name) {
@@ -63,9 +66,7 @@ public abstract class Instrument {
     }
 
     public abstract boolean isBenchmarkMethod(Method method);
-
-    public abstract Instrumentation createInstrumentation(Method benchmarkMethod)
-            throws InvalidBenchmarkException;
+    public abstract Instrumentation createInstrumentation(Method benchmarkMethod) throws InvalidBenchmarkException;
 
     /**
      * Indicates that trials using this instrument can be run in parallel with other trials.
@@ -75,7 +76,6 @@ public abstract class Instrument {
     /**
      * The application of an instrument to a particular benchmark method.
      */
-    // TODO(gak): consider passing in Instrument explicitly for DI
     public abstract class Instrumentation {
 
         @ExcludeFromJson
@@ -120,17 +120,8 @@ public abstract class Instrument {
 
         public abstract void dryRun(Object benchmark) throws InvalidBenchmarkException;
 
-        public abstract Class<? extends Worker> workerClass();
-
-        /**
-         * Return the subset of options (and possibly a transformation thereof) to be used in the
-         * worker. Returns all instrument options by default.
-         */
-        public Map<String, String> workerOptions() {
-            return options;
-        }
-
-        abstract MeasurementCollectingVisitor getMeasurementCollectingVisitor();
+        public abstract MeasurementCollectingVisitor getMeasurementCollectingVisitor();
+        public abstract Worker createWorker(BenchmarkClass benchmark, Ticker ticker, SortedMap<String, String> userParameters);
     }
 
     public final Map<String, String> options() {
@@ -142,35 +133,6 @@ public abstract class Instrument {
                 .instrumentClass(getClass())
                 .addAllOptions(options())
                 .build();
-    }
-
-    /**
-     * Defines the list of options applicable to this instrument. Implementations that use options
-     * will need to override this method.
-     */
-    protected ImmutableSet<String> instrumentOptions() {
-        return ImmutableSet.of();
-    }
-
-    /**
-     * Some default JVM args to keep worker VMs somewhat predictable.
-     */
-    static final ImmutableSet<String> JVM_ARGS = ImmutableSet.of(
-            // do compilation serially
-            "-Xbatch",
-            // make sure compilation doesn't run in parallel with itself
-            "-XX:CICompilerCount=1",
-            // ensure the parallel garbage collector
-            "-XX:+UseParallelGC",
-            // generate classes or don't, but do it immediately
-            "-Dsun.reflect.inflationThreshold=0");
-
-    /**
-     * Returns some arguments that should be added to the command line when invoking
-     * this instrument's worker.
-     */
-    Set<String> getExtraCommandLineArgs() {
-        return JVM_ARGS;
     }
 
     /**

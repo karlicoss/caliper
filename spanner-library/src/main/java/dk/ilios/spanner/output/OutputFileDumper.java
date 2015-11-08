@@ -34,9 +34,8 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.logging.Logger;
 
-import dk.ilios.spanner.SpannerConfig;
 import dk.ilios.spanner.config.InvalidConfigurationException;
-import dk.ilios.spanner.internal.benchmark.BenchmarkClass;
+import dk.ilios.spanner.benchmark.BenchmarkClass;
 import dk.ilios.spanner.model.Run;
 import dk.ilios.spanner.model.Trial;
 
@@ -73,26 +72,10 @@ public final class OutputFileDumper implements ResultProcessor {
                             Gson gson,
                             File outputDir,
                             String overrideFileName) throws InvalidConfigurationException {
+
         this.run = run;
         String fileName = overrideFileName != null ? overrideFileName : createFileName(benchmarkClass.name());
         this.resultFile = new File(outputDir, fileName);
-//        logger.fine("found no configuration");
-
-//        ResultProcessorConfig config = spannerConfig.getResultProcessorConfig(OutputFileDumper.class);
-//        if (config.options().containsKey("file")) {
-//            this.resultFile = new File(config.options().get("file"));
-//            logger.finer("found an output file in the configuration");
-//        } else if (config.options().containsKey("dir")) {
-//            File dir = new File(config.options().get("dir"));
-//            if (dir.isFile()) {
-//                throw new InvalidConfigurationException("specified a directory, but it's a file");
-//            }
-//            this.resultFile = new File(dir, createFileName(benchmarkClass.name()));
-//            logger.finer("found an output directory in the configuration");
-//        } else {
-//            this.resultFile = new File(new File(resultFolder, "results"), createFileName(benchmarkClass.name()));
-//            logger.fine("found no configuration");
-//        }
         logger.fine(String.format("using %s for results", resultFile));
         this.gson = gson;
         this.workFile = new File(resultFile.getPath() + ".tmp");

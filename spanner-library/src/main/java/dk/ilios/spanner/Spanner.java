@@ -38,9 +38,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 
+import dk.ilios.spanner.config.InstrumentConfig;
 import dk.ilios.spanner.config.SpannerConfiguration;
 import dk.ilios.spanner.config.SpannerConfigLoader;
-import dk.ilios.spanner.config.InstrumentConfig;
 import dk.ilios.spanner.config.InvalidConfigurationException;
 import dk.ilios.spanner.exception.InvalidCommandException;
 import dk.ilios.spanner.http.HttpUploader;
@@ -50,7 +50,7 @@ import dk.ilios.spanner.internal.ExperimentSelector;
 import dk.ilios.spanner.internal.ExperimentingSpannerRun;
 import dk.ilios.spanner.internal.Instrument;
 import dk.ilios.spanner.internal.InvalidBenchmarkException;
-import dk.ilios.spanner.internal.benchmark.BenchmarkClass;
+import dk.ilios.spanner.benchmark.BenchmarkClass;
 import dk.ilios.spanner.json.AnnotationExclusionStrategy;
 import dk.ilios.spanner.json.InstantTypeAdapter;
 import dk.ilios.spanner.log.AndroidStdOut;
@@ -103,7 +103,6 @@ public class Spanner {
             throw new IllegalArgumentException(e);
         }
     }
-
 
     private Spanner(BenchmarkClass benchmarkClass, Callback callback) {
         this.benchmarkClass = benchmarkClass;
@@ -167,7 +166,9 @@ public class Spanner {
                 processors.add(dumper);
             }
             if (benchmarkConfig.getBaselineOutputFile() != null) {
-                OutputFileDumper dumper = new OutputFileDumper(runInfo, benchmarkClass, gson, benchmarkConfig.getBaselineOutputFile());
+                File baselineDir = new File(benchmarkConfig.getBaselineOutputFile().getParent());
+                String baselineFilename = benchmarkConfig.getBaselineOutputFile().getName();
+                OutputFileDumper dumper = new OutputFileDumper(runInfo, benchmarkClass, gson, baselineDir, baselineFilename);
                 processors.add(dumper);
             }
             if (benchmarkConfig.isUploadResults()) {
@@ -204,8 +205,8 @@ public class Spanner {
 
     public ImmutableSet<Instrument> getInstruments(SpannerConfig benchmarkConfig, final SpannerConfiguration config) throws InvalidCommandException {
         ImmutableSet.Builder<Instrument> builder = ImmutableSet.builder();
-        Set<Class<? extends Instrument>> configuredInstruments = benchmarkConfig.getInstruments();
-        for (Class<? extends Instrument> clazz : configuredInstruments) {
+        Set<InstrumentConfig> configuredInstruments = benchmarkConfig.instrumentConfigurations();
+        for (InstrumentConfig instrumentConfig : configuredInstruments) {
             //FIXME Add back support for configuring the instruments
 //            if (!configuredInstruments.contains(instrumentName)) {
 //                throw new InvalidCommandException("%s is not a configured instrument (%s). "
@@ -229,10 +230,10 @@ public class Spanner {
 //                });
 //            String className = instrumentConfig.className();
             try {
-//                Class<? extends Instrument> clazz = Util.lenientClassForName(className).asSubclass(Instrument.class);
+                Class<? extends Instrument> clazz = instrumentConfig.getInstrumentClass();
                 ShortDuration timerGranularity = new NanoTimeGranularityTester().testNanoTimeGranularity();
-                Instrument instrument = (Instrument) clazz.getDeclaredConstructors()[0].newInstance(timerGranularity);
-                instrument.setOptions(config.properties());
+                Instrument instrument = (Instrument) clazz.getDeclaredConstructors()[0].newInstance(
+                        timerGranularity, instrumentConfig);
                 builder.add(instrument);
             } catch (InstantiationException e) {
                 callback.onError(e);

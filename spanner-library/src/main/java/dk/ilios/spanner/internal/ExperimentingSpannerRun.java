@@ -45,17 +45,17 @@ import dk.ilios.spanner.Spanner;
 import dk.ilios.spanner.output.ResultProcessor;
 import dk.ilios.spanner.exception.SkipThisScenarioException;
 import dk.ilios.spanner.exception.TrialFailureException;
-import dk.ilios.spanner.internal.benchmark.BenchmarkClass;
-import dk.ilios.spanner.internal.trial.AndroidUnitTestTrial;
-import dk.ilios.spanner.internal.trial.ScheduledTrial;
-import dk.ilios.spanner.internal.trial.TrialContext;
+import dk.ilios.spanner.benchmark.BenchmarkClass;
+import dk.ilios.spanner.trial.AndroidTrial;
+import dk.ilios.spanner.trial.ScheduledTrial;
+import dk.ilios.spanner.trial.TrialContext;
 import dk.ilios.spanner.model.BenchmarkSpec;
 import dk.ilios.spanner.model.Host;
 import dk.ilios.spanner.model.InstrumentSpec;
 import dk.ilios.spanner.model.Run;
 import dk.ilios.spanner.model.Scenario;
 import dk.ilios.spanner.model.Trial;
-import dk.ilios.spanner.internal.trial.TrialSchedulingPolicy;
+import dk.ilios.spanner.trial.TrialSchedulingPolicy;
 import dk.ilios.spanner.log.StdOut;
 import dk.ilios.spanner.options.SpannerOptions;
 
@@ -271,7 +271,7 @@ public final class ExperimentingSpannerRun implements SpannerRun {
                         .instrumentSpec(instrumentSpec)
                         .build();
 
-                AndroidUnitTestTrial runLoop = new AndroidUnitTestTrial(trial, selector.benchmarkClass(), measurementsVisitor, options, null, callback);
+                AndroidTrial runLoop = new AndroidTrial(trial, selector.benchmarkClass(), measurementsVisitor, options, null, callback);
                 ScheduledTrial scheduledTrial = new ScheduledTrial(trial, runLoop, TrialSchedulingPolicy.SERIAL);
                 trials.add(scheduledTrial);
             }

@@ -49,7 +49,6 @@ public class SpannerCallbackAdapter implements Spanner.Callback {
     }
 
     @Override
-    public void onError(Exception error) {
-
+    public void onError(Exception exception) {
     }
 }

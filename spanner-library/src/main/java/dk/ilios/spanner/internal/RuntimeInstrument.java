@@ -14,16 +14,9 @@
 
 package dk.ilios.spanner.internal;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-import static com.google.common.base.Throwables.propagateIfInstanceOf;
-import static java.util.concurrent.TimeUnit.MILLISECONDS;
-import static java.util.concurrent.TimeUnit.NANOSECONDS;
-
 import com.google.common.base.Stopwatch;
+import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
@@ -32,6 +25,7 @@ import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
+import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
@@ -39,38 +33,48 @@ import dk.ilios.spanner.AfterRep;
 import dk.ilios.spanner.BeforeRep;
 import dk.ilios.spanner.Benchmark;
 import dk.ilios.spanner.Macrobenchmark;
+import dk.ilios.spanner.benchmark.BenchmarkClass;
+import dk.ilios.spanner.benchmark.BenchmarkMethods;
 import dk.ilios.spanner.bridge.AbstractLogMessageVisitor;
 import dk.ilios.spanner.bridge.GcLogMessage;
 import dk.ilios.spanner.bridge.HotspotLogMessage;
 import dk.ilios.spanner.bridge.StartMeasurementLogMessage;
 import dk.ilios.spanner.bridge.StopMeasurementLogMessage;
+import dk.ilios.spanner.config.RuntimeConfig;
 import dk.ilios.spanner.exception.SkipThisScenarioException;
 import dk.ilios.spanner.exception.TrialFailureException;
 import dk.ilios.spanner.exception.UserCodeException;
-import dk.ilios.spanner.internal.benchmark.BenchmarkMethods;
-import dk.ilios.spanner.internal.trial.TrialSchedulingPolicy;
 import dk.ilios.spanner.model.Measurement;
+import dk.ilios.spanner.trial.TrialSchedulingPolicy;
+import dk.ilios.spanner.util.Reflection;
 import dk.ilios.spanner.util.ShortDuration;
+import dk.ilios.spanner.util.Util;
 import dk.ilios.spanner.worker.MacrobenchmarkWorker;
 import dk.ilios.spanner.worker.RuntimeWorker;
 import dk.ilios.spanner.worker.Worker;
-import dk.ilios.spanner.util.Reflection;
-import dk.ilios.spanner.util.Util;
+
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Throwables.propagateIfInstanceOf;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 /**
  * The instrument responsible for measuring the runtime of {@link Benchmark} methods.
  */
 public class RuntimeInstrument extends Instrument {
 
-    private static final String SUGGEST_GRANULARITY_OPTION = "suggestGranularity";
-    private static final String TIMING_INTERVAL_OPTION = "timingInterval";
     private static final int DRY_RUN_REPS = 1;
 
     private static final Logger logger = Logger.getLogger(RuntimeInstrument.class.getName());
 
     private final ShortDuration timerGranularityNanoSec;
+    private final RuntimeConfig configuration;
 
-    public RuntimeInstrument(ShortDuration timerGranularityNanoSec) {
+    public RuntimeInstrument(ShortDuration timerGranularityNanoSec, RuntimeConfig configuration) {
+        super(configuration.options());
+        this.configuration = configuration;
         this.timerGranularityNanoSec = timerGranularityNanoSec;
     }
 
@@ -82,23 +86,11 @@ public class RuntimeInstrument extends Instrument {
     }
 
     @Override
-    protected ImmutableSet<String> instrumentOptions() {
-        return ImmutableSet.of(
-                CommonInstrumentOptions.WARMUP.getKey(),
-                CommonInstrumentOptions.MAX_WARMUP_WALL_TIME.getKey(),
-                TIMING_INTERVAL_OPTION,
-                CommonInstrumentOptions.MEASUREMENTS.getKey(),
-                CommonInstrumentOptions.GC_BEFORE_EACH.getKey(),
-                SUGGEST_GRANULARITY_OPTION);
-    }
-
-    @Override
     public Instrumentation createInstrumentation(Method benchmarkMethod) throws InvalidBenchmarkException {
         checkNotNull(benchmarkMethod);
         checkArgument(isBenchmarkMethod(benchmarkMethod));
         if (Util.isStatic(benchmarkMethod)) {
-            throw new InvalidBenchmarkException("Benchmark methods must not be static: %s",
-                    benchmarkMethod.getName());
+            throw new InvalidBenchmarkException("Benchmark methods must not be static: %s", benchmarkMethod.getName());
         }
         try {
             switch (BenchmarkMethods.Type.of(benchmarkMethod)) {
@@ -148,23 +140,23 @@ public class RuntimeInstrument extends Instrument {
         }
 
         @Override
-        public Class<? extends Worker> workerClass() {
-            return MacrobenchmarkWorker.class;
+        public MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
+            return new SingleInvocationMeasurementCollector(
+                    configuration.measurements(),
+                    ShortDuration.of(configuration.warmpupTime(), configuration.warmupTimeUnit()),
+                    ShortDuration.of(10, TimeUnit.MINUTES),
+                    timerGranularityNanoSec);
         }
 
         @Override
-        MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
-//            return new SingleInvocationMeasurementCollector(
-//                    Integer.parseInt(options.get(CommonInstrumentOptions.MEASUREMENTS.getKey())),
-//                    ShortDuration.valueOf(options.get(CommonInstrumentOptions.WARMUP.getKey())),
-//                    ShortDuration.valueOf(options.get(CommonInstrumentOptions.MAX_WARMUP_WALL_TIME.getKey())),
-//                    timerGranularityNanoSec);
-
-            return new SingleInvocationMeasurementCollector(
-                    9,
-                    ShortDuration.of(10, TimeUnit.SECONDS),
-                    ShortDuration.of(10, TimeUnit.MINUTES),
-                    timerGranularityNanoSec);
+        public Worker createWorker(BenchmarkClass benchmark, Ticker ticker, SortedMap<String, String> userParameters) {
+            return new MacrobenchmarkWorker(
+                    benchmark,
+                    benchmarkMethod,
+                    ticker,
+                    configuration,
+                    userParameters
+            );
         }
     }
 
@@ -196,70 +188,54 @@ public class RuntimeInstrument extends Instrument {
         }
 
         @Override
-        public ImmutableMap<String, String> workerOptions() {
-            return ImmutableMap.of(
-                    TIMING_INTERVAL_OPTION + "Nanos", toNanosString(TIMING_INTERVAL_OPTION),
-                    CommonInstrumentOptions.GC_BEFORE_EACH.getKey(), "true"
-            );
-
-//            return ImmutableMap.of(
-//                    TIMING_INTERVAL_OPTION + "Nanos", toNanosString(TIMING_INTERVAL_OPTION),
-//                    CommonInstrumentOptions.GC_BEFORE_EACH.getKey(), options.get(CommonInstrumentOptions.GC_BEFORE_EACH.getKey())
-//            );
-        }
-
-        private String toNanosString(String optionName) {
-            return String.valueOf(ShortDuration.of(500, TimeUnit.MILLISECONDS)); // From global-config.properties.
-//            return String.valueOf(
-//                    ShortDuration.valueOf(options.get(optionName)).to(NANOSECONDS));
-        }
-
-        @Override
-        MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
+        public MeasurementCollectingVisitor getMeasurementCollectingVisitor() {
             return new RepetitionBasedMeasurementCollector(
-                    9,
-                    ShortDuration.of(0, TimeUnit.SECONDS),
-                    ShortDuration.of(10, TimeUnit.MINUTES),
+                    configuration.measurements(),
+                    ShortDuration.of(configuration.warmpupTime(), configuration.warmupTimeUnit()),
+                    ShortDuration.of(configuration.maxWarmupTime(), configuration.maxWarmupTimeUnit()),
                     true,
                     timerGranularityNanoSec);
-//
-//
-//            return new RepBasedMeasurementCollector(
-//                    getMeasurementsPerTrial(),
-//                    ShortDuration.valueOf(options.get(CommonInstrumentOptions.WARMUP.getKey())),
-//                    ShortDuration.valueOf(options.get(CommonInstrumentOptions.MAX_WARMUP_WALL_TIME.getKey())),
-//                    Boolean.parseBoolean(options.get(SUGGEST_GRANULARITY_OPTION)),
-//                    timerGranularityNanoSec);
         }
     }
 
+    /**
+     * Instrumentation class for micro benchmarks benchmarks.
+     */
     private class MicrobenchmarkInstrumentation extends RuntimeInstrumentation {
         MicrobenchmarkInstrumentation(Method benchmarkMethod) {
             super(benchmarkMethod);
         }
 
         @Override
-        public Class<? extends Worker> workerClass() {
-            return RuntimeWorker.Micro.class;
+        public Worker createWorker(BenchmarkClass benchmark, Ticker ticker, SortedMap<String, String> userParameters) {
+            return new RuntimeWorker.Micro(
+                    benchmark,
+                    benchmarkMethod,
+                    ticker,
+                    configuration,
+                    userParameters
+            );
         }
     }
 
-    private int getMeasurementsPerTrial() {
-        String measurementsString = options.get(CommonInstrumentOptions.MEASUREMENTS.getKey());
-        int measurementsPerTrial = (measurementsString == null) ? 1 : Integer.parseInt(measurementsString);
-        // TODO(gak): fail faster
-        checkState(measurementsPerTrial > 0);
-        return measurementsPerTrial;
-    }
-
+    /**
+     * Instrumentation class for pico benchmarks.
+     */
     private class PicobenchmarkInstrumentation extends RuntimeInstrumentation {
+
         PicobenchmarkInstrumentation(Method benchmarkMethod) {
             super(benchmarkMethod);
         }
 
         @Override
-        public Class<? extends Worker> workerClass() {
-            return RuntimeWorker.Pico.class;
+        public Worker createWorker(BenchmarkClass benchmark, Ticker ticker, SortedMap<String, String> userParameters) {
+            return new RuntimeWorker.Pico(
+                    benchmark,
+                    benchmarkMethod,
+                    ticker,
+                    configuration,
+                    userParameters
+            );
         }
     }
 

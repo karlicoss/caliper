@@ -3,23 +3,20 @@ package dk.ilios.spanner;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
+import dk.ilios.spanner.config.CustomConfig;
+import dk.ilios.spanner.config.InstrumentConfig;
+import dk.ilios.spanner.config.RuntimeConfig;
 import dk.ilios.spanner.internal.CustomMeasurementInstrument;
-import dk.ilios.spanner.internal.Instrument;
 import dk.ilios.spanner.internal.RuntimeInstrument;
 
 /**
  * Class for adding custom configuration of a Spanner run.
  */
 public class SpannerConfig {
-
-    private static final Class<? extends Instrument> RUNTIME_INSTRUMENT = RuntimeInstrument.class;
-    private static final Class<? extends Instrument> CUSTOM_INSTRUMENT = CustomMeasurementInstrument.class;
-
     private final File resultsFolder;
     private final File baseLineFile;
     private final boolean warnIfWrongTestGranularity;
@@ -28,7 +25,9 @@ public class SpannerConfig {
     private final String apiKey;
     private final boolean uploadResults;
     private float baselineFailure;
-    private Set<Class<? extends Instrument>> instruments;
+    private Set<InstrumentConfig> configs = new HashSet<>();
+    private RuntimeConfig runtimeConfig;
+    private CustomConfig customConfig;
 
     private SpannerConfig(Builder builder) {
         this.resultsFolder = builder.resultsFolder;
@@ -39,9 +38,12 @@ public class SpannerConfig {
         this.uploadUrl = builder.uploadUrl;
         this.apiKey = builder.apiKey;
         this.baselineFailure = builder.baselineFailure;
-        this.instruments = new HashSet<>(2);
-        instruments.add(RUNTIME_INSTRUMENT);
-        instruments.add(CUSTOM_INSTRUMENT);
+        if (builder.instrumentationConfigs.isEmpty()) {
+            configs.add(RuntimeConfig.defaultConfig());
+            configs.add(CustomConfig.defaultConfig());
+        } else {
+            configs.addAll(builder.instrumentationConfigs);
+        }
     }
 
     public File getResultsFolder() {
@@ -76,9 +78,18 @@ public class SpannerConfig {
         return baselineFailure;
     }
 
-    public Set<Class<? extends Instrument>> getInstruments() {
-        return instruments;
+    public RuntimeConfig getRuntimeConfig() {
+        return runtimeConfig;
     }
+
+    public CustomConfig getCustomConfig() {
+        return customConfig;
+    }
+
+    public Set<InstrumentConfig> instrumentConfigurations() {
+        return configs;
+    }
+
     /**
      * Builder for fluent construction of a SpannerConfig object.
      */
@@ -91,6 +102,7 @@ public class SpannerConfig {
         private String apiKey = "";
         private URL uploadUrl = getUrl("https://microbenchmarks.appspot.com");
         private float baselineFailure = 0.2f; // 20% difference from baseline will fail the experiment.
+        private Set<InstrumentConfig> instrumentationConfigs = new HashSet<>();
 
         public Builder() {
         }
@@ -109,7 +121,9 @@ public class SpannerConfig {
          * @return Builder object.
          */
         public Builder saveResults(File dir) {
-            dir.mkdirs();
+            if (dir != null) {
+                dir.mkdirs();
+            }
             checkValidWritableFolder(dir);
             this.resultsFolder = dir;
             return this;
@@ -164,6 +178,15 @@ public class SpannerConfig {
         public Builder apiKey(String apiKey) {
             checkNotNull(apiKey, "Only non-null keys allowed");
             this.apiKey = apiKey;
+            return this;
+        }
+
+        /**
+         * Add a new Instrumentation. Setting this will override all default instruments.
+         */
+        public Builder addInstrument(InstrumentConfig config) {
+            checkNotNull(config, "Only non-null configurations allowed");
+            instrumentationConfigs.add(config);
             return this;
         }
 

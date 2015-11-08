@@ -1,4 +1,4 @@
-package dk.ilios.spanner.internal.trial;
+package dk.ilios.spanner.trial;
 
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
@@ -11,7 +11,7 @@ import dk.ilios.spanner.bridge.ShouldContinueMessage;
 import dk.ilios.spanner.bridge.StartMeasurementLogMessage;
 import dk.ilios.spanner.bridge.StopMeasurementLogMessage;
 import dk.ilios.spanner.internal.MeasurementCollectingVisitor;
-import dk.ilios.spanner.internal.benchmark.BenchmarkClass;
+import dk.ilios.spanner.benchmark.BenchmarkClass;
 import dk.ilios.spanner.model.Trial;
 import dk.ilios.spanner.options.SpannerOptions;
 import dk.ilios.spanner.util.ShortDuration;
@@ -25,7 +25,7 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
  * <p>
  * Warning: This will block the executing thread until the trial is complete.
  */
-public class AndroidUnitTestTrial implements Callable<Trial.Result> {
+public class AndroidTrial implements Callable<Trial.Result> {
 
     private final Trial trial;
     private final SpannerOptions options;
@@ -35,14 +35,13 @@ public class AndroidUnitTestTrial implements Callable<Trial.Result> {
     private final BenchmarkClass benchmark;
     private final Spanner.Callback callback;
 
-    public AndroidUnitTestTrial(
+    public AndroidTrial(
             Trial trial,
             BenchmarkClass benchmarkClass,
             MeasurementCollectingVisitor measurementCollectingVisitor,
             SpannerOptions options,
             TrialOutputLogger trialOutput,
-            Spanner.Callback callback
-    ) {
+            Spanner.Callback callback) {
         this.trial = trial;
         this.options = options;
         this.measurementCollectingVisitor = measurementCollectingVisitor;
@@ -52,7 +51,6 @@ public class AndroidUnitTestTrial implements Callable<Trial.Result> {
     }
 
     // TODO Timeout not possible when running on the same thread
-    // TODO Error checking has been removed. Any crash in benchmark code will crash everything.
     @Override
     public Trial.Result call() throws Exception {
         callback.trialStarted(trial);
@@ -70,11 +68,9 @@ public class AndroidUnitTestTrial implements Callable<Trial.Result> {
     }
 
     private Trial.Result getResult() throws Exception {
-        Worker worker = (Worker) trial.experiment().instrumentation().workerClass().getDeclaredConstructors()[0].newInstance(
+        Worker worker = trial.experiment().instrumentation().createWorker(
                 benchmark,
-                trial.experiment().instrumentation().benchmarkMethod(),
                 Ticker.systemTicker(),
-                trial.experiment().instrumentation().workerOptions(),
                 trial.experiment().userParameters()
         );
 

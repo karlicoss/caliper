@@ -19,7 +19,12 @@ package io.ilios.spanner.benchmarks.valid;
 
 import org.junit.runner.RunWith;
 
+import java.util.Random;
+
 import dk.ilios.spanner.Benchmark;
+import dk.ilios.spanner.BenchmarkConfiguration;
+import dk.ilios.spanner.SpannerConfig;
+import dk.ilios.spanner.config.RuntimeConfig;
 import dk.ilios.spanner.junit.SpannerRunner;
 
 @RunWith(SpannerRunner.class)
@@ -27,12 +32,15 @@ public class DefaultConfig {
 
     @Benchmark
     public void defaultConfig(long reps) {
-        for (int i = 0; i < reps; i++) {
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        String str;
+        for (long i = 0; i < reps; i++) {
+            str = "";
+            str += "a";
+            str += "b";
+            str += "c";
+            str += "d";
+            str += "e";
+            str += "f";
         }
     }
 }

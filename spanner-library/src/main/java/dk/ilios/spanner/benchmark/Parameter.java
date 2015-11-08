@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package dk.ilios.spanner.internal.benchmark;
+package dk.ilios.spanner.benchmark;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;

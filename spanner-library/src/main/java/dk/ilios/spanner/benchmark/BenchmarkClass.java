@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package dk.ilios.spanner.internal.benchmark;
+package dk.ilios.spanner.benchmark;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Throwables.propagateIfInstanceOf;

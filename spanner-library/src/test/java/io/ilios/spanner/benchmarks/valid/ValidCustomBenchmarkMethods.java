@@ -17,15 +17,21 @@
 
 package io.ilios.spanner.benchmarks.valid;
 
-import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import dk.ilios.spanner.Benchmark;
+import dk.ilios.spanner.BenchmarkConfiguration;
 import dk.ilios.spanner.CustomMeasurement;
+import dk.ilios.spanner.SpannerConfig;
+import dk.ilios.spanner.config.CustomConfig;
 import dk.ilios.spanner.junit.SpannerRunner;
 
 @RunWith(SpannerRunner.class)
 public class ValidCustomBenchmarkMethods {
+
+    @BenchmarkConfiguration
+    public SpannerConfig config = new SpannerConfig.Builder()
+            .addInstrument(CustomConfig.unittestConfig())
+            .build();
 
     @CustomMeasurement
     public double noParams() {

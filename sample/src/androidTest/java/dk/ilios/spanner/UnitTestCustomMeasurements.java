@@ -17,17 +17,25 @@
 
 package dk.ilios.spanner;
 
-import android.support.test.InstrumentationRegistry;
-
 import org.junit.runner.RunWith;
 
-import java.io.File;
-
-import dk.ilios.spanner.example.Utils;
 import dk.ilios.spanner.junit.SpannerRunner;
 
 @RunWith(SpannerRunner.class)
 public class UnitTestCustomMeasurements {
+
+//    private File filesDir = InstrumentationRegistry.getTargetContext().getFilesDir();
+//    private File resultsDir = new File(filesDir, "results");
+//    private File baseLineFile = Utils.copyFromAssets("baseline.json");
+//
+//    @BenchmarkConfiguration
+//    public SpannerConfig configuration = new SpannerConfig.Builder()
+//            .saveResults(resultsDir)
+//            .createBaseline(resultsDir)
+//            .useBaseline(baseLineFile)
+//            .baselineFailure(1.0f) // Accept 100% difference, normally should be 10-15%
+//            .uploadResults()
+//            .build();
 
     // Public test parameters (value chosen and injected by Experiment)
     @Param(value = {"java.util.Date", "java.lang.Object"})

@@ -31,10 +31,9 @@ import org.apache.commons.math.stat.descriptive.rank.Percentile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import dk.ilios.spanner.internal.Experiment;
-import dk.ilios.spanner.internal.trial.TrialContext;
+import dk.ilios.spanner.trial.TrialContext;
 import dk.ilios.spanner.json.ExcludeFromJson;
 
 /**
