@@ -25,9 +25,8 @@ public class SpannerConfig {
     private final String apiKey;
     private final boolean uploadResults;
     private float baselineFailure;
+    private int maxBenchmarkThreads;
     private Set<InstrumentConfig> configs = new HashSet<>();
-    private RuntimeConfig runtimeConfig;
-    private CustomConfig customConfig;
 
     private SpannerConfig(Builder builder) {
         this.resultsFolder = builder.resultsFolder;
@@ -38,6 +37,7 @@ public class SpannerConfig {
         this.uploadUrl = builder.uploadUrl;
         this.apiKey = builder.apiKey;
         this.baselineFailure = builder.baselineFailure;
+        this.maxBenchmarkThreads = builder.maxBenchmarkThreads;
         if (builder.instrumentationConfigs.isEmpty()) {
             configs.add(RuntimeConfig.defaultConfig());
             configs.add(CustomConfig.defaultConfig());
@@ -78,16 +78,12 @@ public class SpannerConfig {
         return baselineFailure;
     }
 
-    public RuntimeConfig getRuntimeConfig() {
-        return runtimeConfig;
-    }
-
-    public CustomConfig getCustomConfig() {
-        return customConfig;
-    }
-
     public Set<InstrumentConfig> instrumentConfigurations() {
         return configs;
+    }
+
+    public int benchmarkThreads() {
+        return maxBenchmarkThreads;
     }
 
     /**
@@ -102,6 +98,7 @@ public class SpannerConfig {
         private String apiKey = "";
         private URL uploadUrl = getUrl("https://microbenchmarks.appspot.com");
         private float baselineFailure = 0.2f; // 20% difference from baseline will fail the experiment.
+        private int maxBenchmarkThreads = 1; // Maximum number of concurrent benchmark threads.
         private Set<InstrumentConfig> instrumentationConfigs = new HashSet<>();
 
         public Builder() {
@@ -197,6 +194,18 @@ public class SpannerConfig {
          */
         public Builder baselineFailure(float percentage) {
             baselineFailure = Math.abs(percentage);
+            return this;
+        }
+
+        /**
+         * Maximum number of worker threads used to run the benchmarks.
+         * The default value is {@code 1}.
+         *
+         * @param threadCount number of threads that can run benchmarks.
+         * @return the Builder.
+         */
+        public Builder maxBenchmarkThreads(int threadCount) {
+            this.maxBenchmarkThreads = threadCount;
             return this;
         }
 

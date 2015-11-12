@@ -14,7 +14,6 @@ import io.ilios.spanner.benchmarks.invalid.StaticBenchmark;
 import io.ilios.spanner.benchmarks.valid.DefaultConfig;
 import io.ilios.spanner.benchmarks.valid.Empty;
 import io.ilios.spanner.benchmarks.valid.ValidBenchmarkMethods;
-import io.ilios.spanner.util.RethrowSpannerCallbackAdapter;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
