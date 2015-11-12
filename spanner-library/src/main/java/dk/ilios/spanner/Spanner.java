@@ -72,8 +72,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class Spanner {
 
-    private static final String RUNNER_MAX_PARALLELISM_OPTION = "runner.maxParallelism";
-
     private final BenchmarkClass benchmarkClass;
     private final Callback callback;
     private SpannerConfig benchmarkConfig;
@@ -122,7 +120,7 @@ public class Spanner {
 
             ImmutableSet<Instrument> instruments = getInstruments(benchmarkConfig, config);
 
-            int poolSize = Integer.parseInt(config.properties().get(RUNNER_MAX_PARALLELISM_OPTION));
+            int poolSize = benchmarkConfig.benchmarkThreads();
             ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(poolSize));
 
             StdOut stdOut = new AndroidStdOut();

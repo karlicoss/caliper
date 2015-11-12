@@ -17,7 +17,6 @@
 
 package dk.ilios.spanner.config;
 
-import dk.ilios.spanner.CustomMeasurement;
 import dk.ilios.spanner.internal.CustomMeasurementInstrument;
 import dk.ilios.spanner.internal.Instrument;
 
@@ -26,12 +25,13 @@ import dk.ilios.spanner.internal.Instrument;
  */
 public class CustomConfig extends InstrumentConfig {
 
-    private static final Class<? extends Instrument> defaultInstrument = CustomMeasurementInstrument.class;
     private static final String KEY_CLASS = "class";
     private static final String KEY_GC_BEFORE_EACH = "gcBeforeEach";
+    private static final String KEY_MEASUREMENTS = "measurements";
 
     private final Class<? extends Instrument> instrumentClass;
     private final boolean gcBeforeEachMeasurement;
+    private final int measurements;
 
     /**
      * Returns the default configuration.
@@ -53,9 +53,11 @@ public class CustomConfig extends InstrumentConfig {
         super(builder.instrumentClass);
         this.instrumentClass = builder.instrumentClass;
         this.gcBeforeEachMeasurement = builder.gcBeforeEachMeasurement;
+        this.measurements = builder.measurements;
 
         addOption(KEY_CLASS, instrumentClass.getName());
         addOption(KEY_GC_BEFORE_EACH, Boolean.toString(gcBeforeEachMeasurement));
+        addOption(KEY_MEASUREMENTS, Integer.toString(measurements));
     }
 
     public boolean gcBeforeEachMeasurement() {
@@ -68,9 +70,21 @@ public class CustomConfig extends InstrumentConfig {
     public static class Builder {
         private Class<? extends Instrument> instrumentClass = CustomMeasurementInstrument.class;
         private boolean gcBeforeEachMeasurement = true;
+        private int measurements = 1;
 
         public Builder instrumentClass(Class<? extends Instrument> instrumentClass) {
             this.instrumentClass = instrumentClass;
+            return this;
+        }
+
+        /**
+         * Number of measurements to record. These will provide the basis for the
+         * final benchmark result.
+         *
+         * @param measurements Number of measurements to do. Default value is {@code 1}.
+         */
+        public Builder measurements(int measurements) {
+            this.measurements = measurements;
             return this;
         }
 

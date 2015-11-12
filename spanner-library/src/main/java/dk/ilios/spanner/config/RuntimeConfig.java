@@ -186,7 +186,7 @@ public class RuntimeConfig extends InstrumentConfig {
          *
          * @param measurements Number of measurements to do.
          */
-        public Builder setMeasurements(int measurements) {
+        public Builder measurements(int measurements) {
             this.measurements = measurements;
             return this;
         }

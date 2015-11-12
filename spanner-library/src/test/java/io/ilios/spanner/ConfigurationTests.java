@@ -29,6 +29,7 @@ public class ConfigurationTests {
         assertTrue(defaultConfig.warnIfWrongTestGranularity());
         assertEquals(null, defaultConfig.getBaselineOutputFile());
         assertEquals(new URL("https://microbenchmarks.appspot.com"), defaultConfig.getUploadUrl());
+        assertEquals(1, defaultConfig.benchmarkThreads());
     }
 
     @Test
