@@ -7,13 +7,13 @@ import java.util.Collections;
 import java.util.concurrent.Callable;
 
 import dk.ilios.spanner.Spanner;
+import dk.ilios.spanner.SpannerConfig;
 import dk.ilios.spanner.bridge.ShouldContinueMessage;
 import dk.ilios.spanner.bridge.StartMeasurementLogMessage;
 import dk.ilios.spanner.bridge.StopMeasurementLogMessage;
 import dk.ilios.spanner.internal.MeasurementCollectingVisitor;
 import dk.ilios.spanner.benchmark.BenchmarkClass;
 import dk.ilios.spanner.model.Trial;
-import dk.ilios.spanner.options.SpannerOptions;
 import dk.ilios.spanner.util.ShortDuration;
 import dk.ilios.spanner.worker.Worker;
 
@@ -28,7 +28,7 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 public class AndroidTrial implements Callable<Trial.Result> {
 
     private final Trial trial;
-    private final SpannerOptions options;
+    private final SpannerConfig options;
     private final MeasurementCollectingVisitor measurementCollectingVisitor;
     private final TrialOutputLogger trialOutput;
     private final Stopwatch trialStopwatch = Stopwatch.createUnstarted();
@@ -39,7 +39,7 @@ public class AndroidTrial implements Callable<Trial.Result> {
             Trial trial,
             BenchmarkClass benchmarkClass,
             MeasurementCollectingVisitor measurementCollectingVisitor,
-            SpannerOptions options,
+            SpannerConfig options,
             TrialOutputLogger trialOutput,
             Spanner.Callback callback) {
         this.trial = trial;

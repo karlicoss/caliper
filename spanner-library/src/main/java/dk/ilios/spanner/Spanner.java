@@ -39,8 +39,6 @@ import java.util.UUID;
 import java.util.concurrent.Executors;
 
 import dk.ilios.spanner.config.InstrumentConfig;
-import dk.ilios.spanner.config.SpannerConfiguration;
-import dk.ilios.spanner.config.SpannerConfigLoader;
 import dk.ilios.spanner.config.InvalidConfigurationException;
 import dk.ilios.spanner.exception.InvalidCommandException;
 import dk.ilios.spanner.http.HttpUploader;
@@ -57,13 +55,10 @@ import dk.ilios.spanner.log.AndroidStdOut;
 import dk.ilios.spanner.log.StdOut;
 import dk.ilios.spanner.model.Run;
 import dk.ilios.spanner.model.Trial;
-import dk.ilios.spanner.options.SpannerOptions;
-import dk.ilios.spanner.options.CommandLineOptions;
 import dk.ilios.spanner.output.OutputFileDumper;
 import dk.ilios.spanner.output.ResultProcessor;
 import dk.ilios.spanner.util.NanoTimeGranularityTester;
 import dk.ilios.spanner.util.ShortDuration;
-import dk.ilios.spanner.util.Util;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -113,12 +108,7 @@ public class Spanner {
             benchmarkConfig = benchmarkClass.getConfiguration();
             File baseline = benchmarkConfig.getBaseLineFile();
 
-            // Setup components needed by the Runner
-            SpannerOptions options = CommandLineOptions.parse(new String[]{benchmarkClass.getCanonicalName()});
-            SpannerConfigLoader configLoader = new SpannerConfigLoader(options);
-            SpannerConfiguration config = configLoader.loadOrCreate();
-
-            ImmutableSet<Instrument> instruments = getInstruments(benchmarkConfig, config);
+            ImmutableSet<Instrument> instruments = getInstruments(benchmarkConfig);
 
             int poolSize = benchmarkConfig.benchmarkThreads();
             ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(poolSize));
@@ -127,8 +117,7 @@ public class Spanner {
             Run runInfo = new Run.Builder(UUID.randomUUID())
                     .label("Gauge benchmark test")
                     .startTime(Instant.now())
-                    .configuration(config)
-                    .options(options)
+                    .configuration(benchmarkConfig)
                     .build();
 
             ExperimentSelector experimentSelector = new AndroidExperimentSelector(benchmarkClass, instruments);
@@ -178,7 +167,7 @@ public class Spanner {
 
             // Configure runner
             SpannerRun run = new ExperimentingSpannerRun(
-                    options,
+                    benchmarkConfig,
                     stdOut,
                     runInfo,
                     instruments,
@@ -201,7 +190,7 @@ public class Spanner {
         }
     }
 
-    public ImmutableSet<Instrument> getInstruments(SpannerConfig benchmarkConfig, final SpannerConfiguration config) throws InvalidCommandException {
+    public ImmutableSet<Instrument> getInstruments(SpannerConfig benchmarkConfig) throws InvalidCommandException {
         ImmutableSet.Builder<Instrument> builder = ImmutableSet.builder();
         Set<InstrumentConfig> configuredInstruments = benchmarkConfig.instrumentConfigurations();
         for (InstrumentConfig instrumentConfig : configuredInstruments) {
