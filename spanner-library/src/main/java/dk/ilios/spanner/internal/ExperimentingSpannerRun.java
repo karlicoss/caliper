@@ -42,6 +42,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import dk.ilios.spanner.Spanner;
+import dk.ilios.spanner.SpannerConfig;
 import dk.ilios.spanner.output.ResultProcessor;
 import dk.ilios.spanner.exception.SkipThisScenarioException;
 import dk.ilios.spanner.exception.TrialFailureException;
@@ -57,7 +58,6 @@ import dk.ilios.spanner.model.Scenario;
 import dk.ilios.spanner.model.Trial;
 import dk.ilios.spanner.trial.TrialSchedulingPolicy;
 import dk.ilios.spanner.log.StdOut;
-import dk.ilios.spanner.options.SpannerOptions;
 
 /**
  * An execution of each {@link Experiment} for the configured number of trials.
@@ -75,7 +75,7 @@ public final class ExperimentingSpannerRun implements SpannerRun {
         }
     };
 
-    private final SpannerOptions options;
+    private final SpannerConfig options;
     private final StdOut stdout;
     private final Run runInfo;
     private final ImmutableSet<Instrument> instruments;
@@ -86,7 +86,7 @@ public final class ExperimentingSpannerRun implements SpannerRun {
     private final Trial[] baselineData;
 
     public ExperimentingSpannerRun(
-            SpannerOptions options,
+            SpannerConfig configuration,
             StdOut stdout,
             Run runInfo,
             ImmutableSet<Instrument> instruments,
@@ -96,7 +96,7 @@ public final class ExperimentingSpannerRun implements SpannerRun {
             Trial[] baselineData,
             Spanner.Callback callback
     ) {
-        this.options = options;
+        this.options = configuration;
         this.stdout = stdout;
         this.runInfo= runInfo;
         this.instruments = instruments;

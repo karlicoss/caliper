@@ -26,13 +26,15 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import dk.ilios.spanner.SpannerConfig;
 import dk.ilios.spanner.model.Run;
-import dk.ilios.spanner.options.SpannerOptions;
 
 /**
  * A {@link TrialOutputFactory} implemented as a service that manages a directory either under
@@ -47,7 +49,7 @@ public final class TrialOutputFactoryService
         extends AbstractIdleService implements TrialOutputFactory {
     private static final String LOG_DIRECTORY_PROPERTY = "worker.output";
 
-    private final SpannerOptions options;
+    private final SpannerConfig options;
     private final Run run;
 
     private final Set<String> toDelete = new LinkedHashSet<String>();
@@ -56,7 +58,7 @@ public final class TrialOutputFactoryService
 
     private boolean persistFiles;
 
-    TrialOutputFactoryService(Run run, SpannerOptions options) {
+    TrialOutputFactoryService(Run run, SpannerConfig options) {
         this.run = run;
         this.options = options;
     }
@@ -100,7 +102,11 @@ public final class TrialOutputFactoryService
     @Override
     protected synchronized void startUp() throws Exception {
         File directory;
-        String dirName = options.configProperties().get(LOG_DIRECTORY_PROPERTY);
+        String dirName = ""; //options.getOutputDir();
+        //FIXME
+        if (1 == 1) {
+            throw new RuntimeException();
+        }
         boolean persistFiles = true;
         if (dirName != null) {
             directory = new File(dirName);

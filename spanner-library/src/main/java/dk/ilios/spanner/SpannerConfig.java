@@ -1,17 +1,20 @@
 package dk.ilios.spanner;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSetMultimap;
+
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import dk.ilios.spanner.config.CustomConfig;
 import dk.ilios.spanner.config.InstrumentConfig;
 import dk.ilios.spanner.config.RuntimeConfig;
-import dk.ilios.spanner.internal.CustomMeasurementInstrument;
-import dk.ilios.spanner.internal.RuntimeInstrument;
+import dk.ilios.spanner.util.ShortDuration;
 
 /**
  * Class for adding custom configuration of a Spanner run.
@@ -84,6 +87,14 @@ public class SpannerConfig {
 
     public int benchmarkThreads() {
         return maxBenchmarkThreads;
+    }
+
+    public int trialsPerScenario() {
+        return 1; // TODO Make this configurable? What happens for multiple trials?
+    }
+
+    public ShortDuration timeLimit() {
+        return ShortDuration.of(5, TimeUnit.MINUTES); // TODO Make this configurable?
     }
 
     /**

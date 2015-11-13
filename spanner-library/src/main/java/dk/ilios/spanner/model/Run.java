@@ -27,9 +27,8 @@ import org.threeten.bp.Instant;
 
 import java.util.UUID;
 
-import dk.ilios.spanner.config.SpannerConfiguration;
+import dk.ilios.spanner.SpannerConfig;
 import dk.ilios.spanner.json.ExcludeFromJson;
-import dk.ilios.spanner.options.SpannerOptions;
 
 /**
  * A single invocation of Gauge.
@@ -39,18 +38,14 @@ public final class Run {
     private UUID id;
     private String label;
     private Instant startTime;
-
     @ExcludeFromJson
-    private SpannerConfiguration configuration;
-    @ExcludeFromJson
-    private SpannerOptions options;
+    private final SpannerConfig configuration;
 
     private Run(Builder builder) {
         this.id = builder.id;
         this.label = builder.label;
         this.startTime = builder.startTime;
         this.configuration = builder.config;
-        this.options = builder.options;
     }
 
     public UUID id() {
@@ -65,12 +60,8 @@ public final class Run {
         return startTime;
     }
 
-    public SpannerConfiguration getConfiguration() {
+    public SpannerConfig getConfiguration() {
         return configuration;
-    }
-
-    public SpannerOptions getOptions() {
-        return options;
     }
 
     @Override
@@ -108,8 +99,7 @@ public final class Run {
         private UUID id;
         private String label = "";
         private Instant startTime;
-        private SpannerConfiguration config;
-        private SpannerOptions options;
+        private SpannerConfig config;
 
         public Builder(UUID id) {
             this.id = checkNotNull(id);
@@ -125,13 +115,8 @@ public final class Run {
             return this;
         }
 
-        public Builder configuration(SpannerConfiguration config) {
+        public Builder configuration(SpannerConfig config) {
             this.config = config;
-            return this;
-        }
-
-        public Builder options(SpannerOptions options) {
-            this.options = options;
             return this;
         }
 
@@ -139,7 +124,6 @@ public final class Run {
             checkState(id != null);
             checkState(startTime != null);
             checkState(config != null);
-            checkState(options != null);
             return new Run(this);
         }
     }
