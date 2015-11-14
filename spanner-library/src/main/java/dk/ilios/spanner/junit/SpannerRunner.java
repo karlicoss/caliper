@@ -4,6 +4,7 @@ import com.google.common.base.Function;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableSortedMap;
 import com.google.common.collect.Multimaps;
 import com.google.common.collect.Ordering;
 
@@ -231,7 +232,27 @@ public class SpannerRunner extends Runner {
                 Method method = trial.experiment().instrumentation().benchmarkMethod();
                 String resultString = String.format(" [%.2f %s.]", result, trial.getUnit().toLowerCase());
                 resultString += formatBenchmarkChange(trial);
-                return Description.createTestDescription(testClass.getJavaClass(), method.getName() + resultString);
+
+                // Benchmark parameters
+                ImmutableSortedMap<String, String> benchmarkParameters = trial.experiment().benchmarkSpec().parameters();
+                String params = "";
+                if (benchmarkParameters.size() > 0) {
+                    params = " " + benchmarkParameters.toString();
+                }
+
+                // Trial number
+                String trialNumber = "";
+                if (benchmarkConfiguration.trialsPrExperiment() > 1) {
+                    trialNumber = "#" + trial.getTrialNumber();
+                }
+
+                String methodDescription;
+                methodDescription = String.format("%s%s%s %s",
+                        method.getName(),
+                        trialNumber,
+                        params,
+                        resultString);
+                return Description.createTestDescription(testClass.getJavaClass(), methodDescription);
             }
         });
     }

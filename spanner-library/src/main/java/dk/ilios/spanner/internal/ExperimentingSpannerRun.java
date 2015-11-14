@@ -247,10 +247,8 @@ public final class ExperimentingSpannerRun implements SpannerRun {
      */
     private List<ScheduledTrial> createScheduledTrials(ImmutableSet<Experiment> experimentsToRun, int totalTrials) {
         List<ScheduledTrial> trials = Lists.newArrayListWithCapacity(totalTrials);
-        /** This is 1-indexed because it's only used for display to users.  E.g. "Trial 1 of 27" */
-        int trialNumber = 1;
-        for (int i = 0; i < options.trialsPrExperiment(); i++) {
             for (Experiment experiment : experimentsToRun) {
+                for (int i = 0; i < options.trialsPrExperiment(); i++) {
 
                 BenchmarkSpec benchmarkSpec = experiment.benchmarkSpec();
 
@@ -264,6 +262,8 @@ public final class ExperimentingSpannerRun implements SpannerRun {
                         .build();
 
                 // Create a trial from the unique combination of trial number,
+                /** This is 1-indexed because it's only used for display to users.  E.g. "Trial 1 of 27" */
+                int trialNumber = i + 1;
                 TrialContext trialContext = new TrialContext(UUID.randomUUID(), trialNumber, experiment);
                 Trial trial = new Trial.Builder(trialContext)
                         .run(runInfo)

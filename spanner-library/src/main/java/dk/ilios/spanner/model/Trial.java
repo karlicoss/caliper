@@ -53,6 +53,9 @@ public final class Trial {
     private List<String> messages = new ArrayList<String>();
 
     @ExcludeFromJson
+    private int trialNumber;
+
+    @ExcludeFromJson
     private boolean trialComplete;
 
     @ExcludeFromJson
@@ -65,6 +68,7 @@ public final class Trial {
     private DescriptiveStatistics descriptiveStatistics;
 
     private Trial(Builder builder) {
+        this.trialNumber = builder.trialNumber;
         this.id = builder.id;
         this.run = builder.run;
         this.instrumentSpec = builder.instrumentSpec;
@@ -119,6 +123,10 @@ public final class Trial {
     public void addMessage(String message) {
         checkIsComplete();
         messages.add(message);
+    }
+
+    public int getTrialNumber() {
+        return trialNumber;
     }
 
     /**
