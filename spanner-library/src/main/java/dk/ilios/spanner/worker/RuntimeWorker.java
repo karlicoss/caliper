@@ -71,7 +71,6 @@ public abstract class RuntimeWorker extends Worker {
     @Override
     public void preMeasure(boolean inWarmup) throws Exception {
         nextReps = calculateTargetReps(totalReps, totalNanos, TimeUnit.NANOSECONDS.convert(options.timingInterval(), options.timingIntervalUnit()), random.nextGaussian());
-        Log.e("Spanner", "NextReps: " + nextReps);
         if (options.gcBeforeEachMeasurement() &&  !inWarmup) {
             Util.forceGc();
         }

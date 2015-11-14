@@ -25,10 +25,6 @@ public class UnitTestBenchmarks {
             .useBaseline(baseLineFile)
             .baselineFailure(1.0f) // Accept 100% difference, normally should be 10-15%
             .uploadResults()
-            .addInstrument(new RuntimeInstrumentConfig.Builder()
-                            .warmupTime(5, TimeUnit.SECONDS)
-                            .build()
-            )
             .build();
 
     // Public test parameters (value chosen and injected by Experiment)
