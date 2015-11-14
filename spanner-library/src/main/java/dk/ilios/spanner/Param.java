@@ -23,23 +23,23 @@ import java.lang.annotation.Target;
 
 /**
  * To make your benchmark depend on a parameterized value, create a field with the name you want
- * this parameter to be known by, and add this annotation. Gauge will inject a value for this
+ * this parameter to be known by, and add this annotation. Spanner will inject a value for this
  * field to each instance it creates. These values come from
  *
  * <ul>
  * <li>The {@link #value()} list given in the annotation
- * <li>Otherwise, if the parameter type is either {@code boolean} or an {@code enum} type, Gauge
+ * <li>Otherwise, if the parameter type is either {@code boolean} or an {@code enum} type, Spanner
  *     assumes you want all possible values.
- * <li>Finally, if none of the above match, Gauge will display an error and exit.
+ * <li>Finally, if none of the above match, Spanner will display an error and exit.
  * </ul>
  *
- * <p>Gauge parameters are always strings, but can be converted to other types at the point of
+ * <p>Spanner parameters are always strings, but can be converted to other types at the point of
  * injection. If the type of the field this annotation is applied to is not {@link String}, then the
  * type class must contain a static {@code fromString(String)}, {@code decode(String)} or {@code
  * valueOf(String)} method that returns that type, or a constructor accepting only a {@code String}.
  *
- * <p>Gauge will test every possible combination of parameter values for your benchmark. For
- * example, if you have two parameters, {@code -Dletter=a,b,c -Dnumber=1,2}, Gauge will construct
+ * <p>Spanner will test every possible combination of parameter values for your benchmark. For
+ * example, if you have two parameters, {@code -Dletter=a,b,c -Dnumber=1,2}, Spanner will construct
  * six independent "scenarios" and perform measurement for each one.
  */
 @Retention(RetentionPolicy.RUNTIME)

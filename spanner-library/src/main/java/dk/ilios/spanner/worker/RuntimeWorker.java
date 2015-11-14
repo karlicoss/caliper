@@ -96,6 +96,8 @@ public abstract class RuntimeWorker extends Worker {
      * Returns a random number of reps based on a normal distribution around the estimated number of
      * reps for the timing interval. The distribution used has a standard deviation of one fifth of
      * the estimated number of reps.
+     *
+     * TODO Find out why this a good idea?
      */
     @VisibleForTesting
     static long calculateTargetReps(long reps, long nanos, long targetNanos, double gaussian) {

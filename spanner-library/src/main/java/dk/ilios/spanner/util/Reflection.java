@@ -22,7 +22,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 
 /**
- * A utility class for common reflection operations in Gauge.
+ * A utility class for common reflection operations in Spanner.
  */
 public final class Reflection {
   private Reflection() {}

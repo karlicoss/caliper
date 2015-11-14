@@ -17,7 +17,7 @@
 package dk.ilios.spanner.internal;
 
 /**
- * A single invocation of Gauge.
+ * A single invocation of Spanner.
  */
 public interface SpannerRun {
   void run() throws InvalidBenchmarkException;

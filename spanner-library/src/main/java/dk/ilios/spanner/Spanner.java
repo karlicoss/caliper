@@ -115,7 +115,7 @@ public class Spanner {
 
             StdOut stdOut = new AndroidStdOut();
             Run runInfo = new Run.Builder(UUID.randomUUID())
-                    .label("Gauge benchmark test")
+                    .label("Spanner benchmark test")
                     .startTime(Instant.now())
                     .configuration(benchmarkConfig)
                     .build();

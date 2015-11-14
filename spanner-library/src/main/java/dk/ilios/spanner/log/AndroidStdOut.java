@@ -5,7 +5,7 @@ package dk.ilios.spanner.log;
  */
 public class AndroidStdOut implements StdOut {
 
-    private String LOG = "Gauge";
+    private String LOG = "Spanner";
 
     @Override
     public void println(String line) {

@@ -31,7 +31,7 @@ import dk.ilios.spanner.SpannerConfig;
 import dk.ilios.spanner.json.ExcludeFromJson;
 
 /**
- * A single invocation of Gauge.
+ * A single invocation of Spanner.
  */
 public final class Run {
 

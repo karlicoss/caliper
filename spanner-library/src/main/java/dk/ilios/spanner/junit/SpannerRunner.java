@@ -63,7 +63,7 @@ public class SpannerRunner extends Runner {
             try {
                 if (!field.getType().equals(SpannerConfig.class)) {
                     throw new IllegalArgumentException("@BenchmarkConfiguration can only be set on " +
-                            "GaugeConfiguration fields.");
+                            "SpannerConfiguration fields.");
                 }
                 benchmarkConfiguration = (SpannerConfig) field.get(testInstance);
             } catch (IllegalAccessException e) {
