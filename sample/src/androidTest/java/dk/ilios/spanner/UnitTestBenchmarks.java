@@ -23,6 +23,7 @@ public class UnitTestBenchmarks {
             .useBaseline(baseLineFile)
             .baselineFailure(1.0f) // Accept 100% difference, normally should be 10-15%
             .uploadResults()
+            .trialsPrExperiment(2)
             .build();
 
     // Public test parameters (value chosen and injected by Experiment)
@@ -55,21 +56,21 @@ public class UnitTestBenchmarks {
         return result;
     }
 
-    @Benchmark
-    public boolean directComparison(int reps) {
-        boolean result = false;
-        for (int i = 0; i < reps; i++) {
-            result = testClass == Object.class;
-        }
-        return result;
-    }
-
-    @Benchmark
-    public boolean equalsTo(int reps) {
-        boolean result = false;
-        for (int i = 0; i < reps; i++) {
-            result = testClass.equals(Object.class);
-        }
-        return result;
-    }
+//    @Benchmark
+//    public boolean directComparison(int reps) {
+//        boolean result = false;
+//        for (int i = 0; i < reps; i++) {
+//            result = testClass == Object.class;
+//        }
+//        return result;
+//    }
+//
+//    @Benchmark
+//    public boolean equalsTo(int reps) {
+//        boolean result = false;
+//        for (int i = 0; i < reps; i++) {
+//            result = testClass.equals(Object.class);
+//        }
+//        return result;
+//    }
 }

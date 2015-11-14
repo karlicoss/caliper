@@ -1,9 +1,5 @@
 package dk.ilios.spanner;
 
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSetMultimap;
-
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -29,6 +25,7 @@ public class SpannerConfig {
     private final boolean uploadResults;
     private float baselineFailure;
     private int maxBenchmarkThreads;
+    private int trialsPrExperiment;
     private Set<InstrumentConfig> configs = new HashSet<>();
 
     private SpannerConfig(Builder builder) {
@@ -41,6 +38,7 @@ public class SpannerConfig {
         this.apiKey = builder.apiKey;
         this.baselineFailure = builder.baselineFailure;
         this.maxBenchmarkThreads = builder.maxBenchmarkThreads;
+        this.trialsPrExperiment = builder.trialsPrExperiment;
         if (builder.instrumentationConfigs.isEmpty()) {
             configs.add(RuntimeConfig.defaultConfig());
             configs.add(CustomConfig.defaultConfig());
@@ -89,8 +87,8 @@ public class SpannerConfig {
         return maxBenchmarkThreads;
     }
 
-    public int trialsPerScenario() {
-        return 1; // TODO Make this configurable? What happens for multiple trials?
+    public int trialsPrExperiment() {
+        return trialsPrExperiment;
     }
 
     public ShortDuration timeLimit() {
@@ -111,6 +109,7 @@ public class SpannerConfig {
         private float baselineFailure = 0.2f; // 20% difference from baseline will fail the experiment.
         private int maxBenchmarkThreads = 1; // Maximum number of concurrent benchmark threads.
         private Set<InstrumentConfig> instrumentationConfigs = new HashSet<>();
+        private int trialsPrExperiment = 1;
 
         public Builder() {
         }
@@ -217,6 +216,20 @@ public class SpannerConfig {
          */
         public Builder maxBenchmarkThreads(int threadCount) {
             this.maxBenchmarkThreads = threadCount;
+            return this;
+        }
+
+        /**
+         * Set the number of trials run for each experiment. Each trial is self-contained and will output
+         * its results independently of the other trials for the same experiment.
+         *
+         * The default value is {@code 1}.
+         *
+         * @param trials number of trials to run pr. experiment.
+         * @return the Builder.
+         */
+        public Builder trialsPrExperiment(int trials) {
+            this.trialsPrExperiment = trials;
             return this;
         }
 

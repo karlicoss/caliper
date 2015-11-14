@@ -152,7 +152,7 @@ public final class ExperimentingSpannerRun implements SpannerRun {
 
         stdout.flush();
 
-        int totalTrials = experimentsToRun.size() * options.trialsPerScenario();
+        int totalTrials = experimentsToRun.size() * options.trialsPrExperiment();
         Stopwatch stopwatch = Stopwatch.createStarted();
         List<ScheduledTrial> trials = createScheduledTrials(experimentsToRun, totalTrials);
 
@@ -249,7 +249,7 @@ public final class ExperimentingSpannerRun implements SpannerRun {
         List<ScheduledTrial> trials = Lists.newArrayListWithCapacity(totalTrials);
         /** This is 1-indexed because it's only used for display to users.  E.g. "Trial 1 of 27" */
         int trialNumber = 1;
-        for (int i = 0; i < options.trialsPerScenario(); i++) {
+        for (int i = 0; i < options.trialsPrExperiment(); i++) {
             for (Experiment experiment : experimentsToRun) {
 
                 BenchmarkSpec benchmarkSpec = experiment.benchmarkSpec();

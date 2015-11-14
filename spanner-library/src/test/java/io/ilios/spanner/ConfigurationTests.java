@@ -30,6 +30,7 @@ public class ConfigurationTests {
         assertEquals(null, defaultConfig.getBaselineOutputFile());
         assertEquals(new URL("https://microbenchmarks.appspot.com"), defaultConfig.getUploadUrl());
         assertEquals(1, defaultConfig.benchmarkThreads());
+        assertEquals(1, defaultConfig.trialsPrExperiment());
     }
 
     @Test
