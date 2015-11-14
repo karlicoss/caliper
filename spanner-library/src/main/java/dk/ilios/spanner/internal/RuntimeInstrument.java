@@ -40,7 +40,7 @@ import dk.ilios.spanner.bridge.GcLogMessage;
 import dk.ilios.spanner.bridge.HotspotLogMessage;
 import dk.ilios.spanner.bridge.StartMeasurementLogMessage;
 import dk.ilios.spanner.bridge.StopMeasurementLogMessage;
-import dk.ilios.spanner.config.RuntimeConfig;
+import dk.ilios.spanner.config.RuntimeInstrumentConfig;
 import dk.ilios.spanner.exception.SkipThisScenarioException;
 import dk.ilios.spanner.exception.TrialFailureException;
 import dk.ilios.spanner.exception.UserCodeException;
@@ -70,9 +70,9 @@ public class RuntimeInstrument extends Instrument {
     private static final Logger logger = Logger.getLogger(RuntimeInstrument.class.getName());
 
     private final ShortDuration timerGranularityNanoSec;
-    private final RuntimeConfig configuration;
+    private final RuntimeInstrumentConfig configuration;
 
-    public RuntimeInstrument(ShortDuration timerGranularityNanoSec, RuntimeConfig configuration) {
+    public RuntimeInstrument(ShortDuration timerGranularityNanoSec, RuntimeInstrumentConfig configuration) {
         super(configuration.options());
         this.configuration = configuration;
         this.timerGranularityNanoSec = timerGranularityNanoSec;

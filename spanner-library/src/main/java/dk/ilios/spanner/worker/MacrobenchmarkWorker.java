@@ -19,7 +19,6 @@ package dk.ilios.spanner.worker;
 import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.ImmutableSortedMap;
 
 import java.lang.reflect.Method;
 import java.util.SortedMap;
@@ -27,7 +26,7 @@ import java.util.SortedMap;
 import dk.ilios.spanner.AfterRep;
 import dk.ilios.spanner.BeforeRep;
 import dk.ilios.spanner.benchmark.BenchmarkClass;
-import dk.ilios.spanner.config.RuntimeConfig;
+import dk.ilios.spanner.config.RuntimeInstrumentConfig;
 import dk.ilios.spanner.model.Measurement;
 import dk.ilios.spanner.model.Value;
 import dk.ilios.spanner.util.Reflection;
@@ -48,7 +47,7 @@ public class MacrobenchmarkWorker extends Worker {
     public MacrobenchmarkWorker(BenchmarkClass benchmarkClass,
                                 Method method,
                                 Ticker ticker,
-                                RuntimeConfig options,
+                                RuntimeInstrumentConfig options,
                                 SortedMap<String, String> userParameters) {
 
         super(benchmarkClass.getInstance(), method, userParameters);

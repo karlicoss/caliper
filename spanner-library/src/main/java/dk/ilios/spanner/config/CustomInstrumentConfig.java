@@ -23,7 +23,7 @@ import dk.ilios.spanner.internal.Instrument;
 /**
  * Type safe configuration object for Custom {@link dk.ilios.spanner.internal.Instrument}s.
  */
-public class CustomConfig extends InstrumentConfig {
+public class CustomInstrumentConfig extends InstrumentConfig {
 
     private static final String KEY_CLASS = "class";
     private static final String KEY_GC_BEFORE_EACH = "gcBeforeEach";
@@ -36,20 +36,20 @@ public class CustomConfig extends InstrumentConfig {
     /**
      * Returns the default configuration.
      */
-    public static CustomConfig defaultConfig() {
-        return new CustomConfig.Builder().build();
+    public static CustomInstrumentConfig defaultConfig() {
+        return new CustomInstrumentConfig.Builder().build();
     }
 
     /**
      * Returns a configuration suitable for being used by unit tests.
      */
-    public static CustomConfig unittestConfig() {
-        return new CustomConfig.Builder()
+    public static CustomInstrumentConfig unittestConfig() {
+        return new CustomInstrumentConfig.Builder()
                 .gcBeforeEachMeasurement(false)
                 .build();
     }
 
-    private CustomConfig(Builder builder) {
+    private CustomInstrumentConfig(Builder builder) {
         super(builder.instrumentClass);
         this.instrumentClass = builder.instrumentClass;
         this.gcBeforeEachMeasurement = builder.gcBeforeEachMeasurement;
@@ -98,8 +98,8 @@ public class CustomConfig extends InstrumentConfig {
             return this;
         }
 
-        public CustomConfig build() {
-            return new CustomConfig(this);
+        public CustomInstrumentConfig build() {
+            return new CustomInstrumentConfig(this);
         }
     }
 }

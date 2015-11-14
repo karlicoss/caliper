@@ -30,7 +30,7 @@ import dk.ilios.spanner.CustomMeasurement;
 import dk.ilios.spanner.benchmark.BenchmarkClass;
 import dk.ilios.spanner.bridge.AbstractLogMessageVisitor;
 import dk.ilios.spanner.bridge.StopMeasurementLogMessage;
-import dk.ilios.spanner.config.CustomConfig;
+import dk.ilios.spanner.config.CustomInstrumentConfig;
 import dk.ilios.spanner.exception.SkipThisScenarioException;
 import dk.ilios.spanner.exception.UserCodeException;
 import dk.ilios.spanner.model.Measurement;
@@ -49,9 +49,9 @@ import static com.google.common.base.Throwables.propagateIfInstanceOf;
 public final class CustomMeasurementInstrument extends Instrument {
 
     private final ShortDuration timerGranularityNanoSec;
-    private final CustomConfig configuation;
+    private final CustomInstrumentConfig configuation;
 
-    public CustomMeasurementInstrument(ShortDuration timerGranularityNanoSec, CustomConfig configuration) {
+    public CustomMeasurementInstrument(ShortDuration timerGranularityNanoSec, CustomInstrumentConfig configuration) {
         super(configuration.options());
         this.timerGranularityNanoSec = timerGranularityNanoSec;
         this.configuation = configuration;

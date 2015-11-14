@@ -16,7 +16,6 @@
 
 package dk.ilios.spanner.worker;
 
-import com.google.common.base.Ticker;
 import com.google.common.collect.ImmutableSet;
 
 import java.lang.reflect.Method;
@@ -24,7 +23,7 @@ import java.util.SortedMap;
 
 import dk.ilios.spanner.CustomMeasurement;
 import dk.ilios.spanner.benchmark.BenchmarkClass;
-import dk.ilios.spanner.config.CustomConfig;
+import dk.ilios.spanner.config.CustomInstrumentConfig;
 import dk.ilios.spanner.model.Measurement;
 import dk.ilios.spanner.model.Value;
 import dk.ilios.spanner.util.Util;
@@ -33,13 +32,13 @@ import dk.ilios.spanner.util.Util;
  * Worker for methods doing their own measurements (custom measurements).
  */
 public final class CustomMeasurementWorker extends Worker {
-    private final CustomConfig options;
+    private final CustomInstrumentConfig options;
     private final String unit;
     private final String description;
 
     public CustomMeasurementWorker(BenchmarkClass benchmarkClass,
                          Method method,
-                         CustomConfig options,
+                         CustomInstrumentConfig options,
                          SortedMap<String, String> userParameters) {
         super(benchmarkClass.getInstance(), method, userParameters);
         this.options = options;

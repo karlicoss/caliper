@@ -28,7 +28,7 @@ import java.util.SortedMap;
 import java.util.concurrent.TimeUnit;
 
 import dk.ilios.spanner.benchmark.BenchmarkClass;
-import dk.ilios.spanner.config.RuntimeConfig;
+import dk.ilios.spanner.config.RuntimeInstrumentConfig;
 import dk.ilios.spanner.internal.InvalidBenchmarkException;
 import dk.ilios.spanner.model.Measurement;
 import dk.ilios.spanner.model.Value;
@@ -45,7 +45,7 @@ public abstract class RuntimeWorker extends Worker {
 
     protected final Random random;
     protected final Ticker ticker;
-    protected final RuntimeConfig options;
+    protected final RuntimeInstrumentConfig options;
     private long totalReps;
     private long totalNanos;
     private long nextReps;
@@ -54,7 +54,7 @@ public abstract class RuntimeWorker extends Worker {
     public RuntimeWorker(BenchmarkClass benchmarkClass,
                          Method method,
                          Ticker ticker,
-                         RuntimeConfig options,
+                         RuntimeInstrumentConfig options,
                          SortedMap<String, String> userParameters) {
         super(benchmarkClass.getInstance(), method, userParameters);
         this.random = new Random();
@@ -112,7 +112,7 @@ public abstract class RuntimeWorker extends Worker {
         public Micro(BenchmarkClass benchmarkClass,
                      Method method,
                      Ticker ticker,
-                     RuntimeConfig options,
+                     RuntimeInstrumentConfig options,
                      SortedMap<String, String> userParameters) {
             super(benchmarkClass, method, ticker, options, userParameters);
         }
@@ -142,7 +142,7 @@ public abstract class RuntimeWorker extends Worker {
         public Pico(BenchmarkClass benchmarkClass,
                     Method method,
                     Ticker ticker,
-                    RuntimeConfig config,
+                    RuntimeInstrumentConfig config,
                     SortedMap<String, String> userParameters) {
             super(benchmarkClass, method, ticker, config, userParameters);
         }

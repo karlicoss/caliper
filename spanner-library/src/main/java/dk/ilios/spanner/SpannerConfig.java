@@ -7,9 +7,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import dk.ilios.spanner.config.CustomConfig;
+import dk.ilios.spanner.config.CustomInstrumentConfig;
 import dk.ilios.spanner.config.InstrumentConfig;
-import dk.ilios.spanner.config.RuntimeConfig;
+import dk.ilios.spanner.config.RuntimeInstrumentConfig;
 import dk.ilios.spanner.util.ShortDuration;
 
 /**
@@ -40,8 +40,8 @@ public class SpannerConfig {
         this.maxBenchmarkThreads = builder.maxBenchmarkThreads;
         this.trialsPrExperiment = builder.trialsPrExperiment;
         if (builder.instrumentationConfigs.isEmpty()) {
-            configs.add(RuntimeConfig.defaultConfig());
-            configs.add(CustomConfig.defaultConfig());
+            configs.add(RuntimeInstrumentConfig.defaultConfig());
+            configs.add(CustomInstrumentConfig.defaultConfig());
         } else {
             configs.addAll(builder.instrumentationConfigs);
         }

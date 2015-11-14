@@ -22,7 +22,7 @@ import org.junit.runner.RunWith;
 import dk.ilios.spanner.Benchmark;
 import dk.ilios.spanner.BenchmarkConfiguration;
 import dk.ilios.spanner.SpannerConfig;
-import dk.ilios.spanner.config.RuntimeConfig;
+import dk.ilios.spanner.config.RuntimeInstrumentConfig;
 import dk.ilios.spanner.junit.SpannerRunner;
 
 @RunWith(SpannerRunner.class)
@@ -30,7 +30,7 @@ public class ValidBenchmarkMethods {
 
     @BenchmarkConfiguration
     public SpannerConfig config = new SpannerConfig.Builder()
-            .addInstrument(RuntimeConfig.unittestConfig())
+            .addInstrument(RuntimeInstrumentConfig.unittestConfig())
             .build();
 
     @Benchmark

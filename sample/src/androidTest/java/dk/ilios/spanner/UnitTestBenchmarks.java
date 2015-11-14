@@ -5,7 +5,9 @@ import android.support.test.InstrumentationRegistry;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+import java.util.concurrent.TimeUnit;
 
+import dk.ilios.spanner.config.RuntimeInstrumentConfig;
 import dk.ilios.spanner.example.Utils;
 import dk.ilios.spanner.junit.SpannerRunner;
 
@@ -23,6 +25,10 @@ public class UnitTestBenchmarks {
             .useBaseline(baseLineFile)
             .baselineFailure(1.0f) // Accept 100% difference, normally should be 10-15%
             .uploadResults()
+            .addInstrument(new RuntimeInstrumentConfig.Builder()
+                            .warmupTime(5, TimeUnit.SECONDS)
+                            .build()
+            )
             .build();
 
     // Public test parameters (value chosen and injected by Experiment)

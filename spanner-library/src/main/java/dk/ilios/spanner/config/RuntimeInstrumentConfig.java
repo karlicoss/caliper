@@ -25,7 +25,7 @@ import dk.ilios.spanner.internal.RuntimeInstrument;
 /**
  * Type safe configuration object for Runtime {@link dk.ilios.spanner.internal.Instrument}s.
  */
-public class RuntimeConfig extends InstrumentConfig {
+public class RuntimeInstrumentConfig extends InstrumentConfig {
 
     private static final Class<? extends Instrument> defaultInstrument = RuntimeInstrument.class;
     private static final String KEY_CLASS = "class";
@@ -53,15 +53,15 @@ public class RuntimeConfig extends InstrumentConfig {
     /**
      * Returns the default configuration.
      */
-    public static RuntimeConfig defaultConfig() {
-        return new RuntimeConfig.Builder().build();
+    public static RuntimeInstrumentConfig defaultConfig() {
+        return new RuntimeInstrumentConfig.Builder().build();
     }
 
     /**
      * Returns a configuration suitable for being used by unit tests.
      */
-    public static RuntimeConfig unittestConfig() {
-        return new RuntimeConfig.Builder()
+    public static RuntimeInstrumentConfig unittestConfig() {
+        return new RuntimeInstrumentConfig.Builder()
                 .warmupTime(0, TimeUnit.SECONDS)
                 .maxWarmupTime(0, TimeUnit.SECONDS)
                 .timingInterval(1, TimeUnit.NANOSECONDS)
@@ -70,7 +70,7 @@ public class RuntimeConfig extends InstrumentConfig {
                 .build();
     }
 
-    private RuntimeConfig(Builder builder) {
+    private RuntimeInstrumentConfig(Builder builder) {
         super(builder.instrumentClass);
         this.instrumentClass = builder.instrumentClass;
         this.warmupTime = builder.warmupTime;
@@ -213,8 +213,8 @@ public class RuntimeConfig extends InstrumentConfig {
             return this;
         }
 
-        public RuntimeConfig build() {
-            return new RuntimeConfig(this);
+        public RuntimeInstrumentConfig build() {
+            return new RuntimeInstrumentConfig(this);
         }
     }
 }
