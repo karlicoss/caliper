@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
             public void trialSuccess(Trial trial, Trial.Result result) {
                 double baselineFailure = 15; //benchmarkConfiguration.getBaselineFailure()
                 if (trial.hasBaseline()) {
-                    double absChange = Math.abs(trial.getChangeFromBaseline());
+                    double absChange = Math.abs(trial.getChangeFromBaseline(50));
                     if (absChange > baselineFailure) {
                         addStatus(String.format("Change from baseline was to big: %.2f%%. Limit is %.2f%%",
                                 absChange, baselineFailure));

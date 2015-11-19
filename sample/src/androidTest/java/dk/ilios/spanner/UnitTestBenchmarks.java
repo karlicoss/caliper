@@ -5,9 +5,7 @@ import android.support.test.InstrumentationRegistry;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.concurrent.TimeUnit;
 
-import dk.ilios.spanner.config.RuntimeInstrumentConfig;
 import dk.ilios.spanner.example.Utils;
 import dk.ilios.spanner.junit.SpannerRunner;
 
@@ -23,7 +21,10 @@ public class UnitTestBenchmarks {
             .saveResults(resultsDir)
             .createBaseline(resultsDir)
             .useBaseline(baseLineFile)
-            .baselineFailure(1.0f) // Accept 100% difference, normally should be 10-15%
+            .maxFailureLimit(1.0f) // Accept 100% difference, normally should be 10-15%
+            .minFailureLimit(1.0f) // Accept 100% difference, normally should be 10-15%
+            .meanFailureLimit(1.0f) // Accept 100% difference, normally should be 10-15%
+            .medianFailureLimit(1.0f) // Accept 100% difference, normally should be 10-15%
             .uploadResults()
             .build();
 

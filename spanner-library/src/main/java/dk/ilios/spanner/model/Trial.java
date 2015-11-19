@@ -177,12 +177,25 @@ public final class Trial {
         return descriptiveStatistics.getMax();
     }
 
-    /**
-     * @param percentile [0, 100]
-     */
-    public double getPercentile(int percentile) {
+    public double getMean() {
         checkResultsCalculated(true);
-        return this.percentile.evaluate(percentile);
+        return descriptiveStatistics.getMean();
+    }
+
+    /**
+     * Return the benchmark value at the given percentile.
+     *
+     * @param percentile [0.0, 100.0]
+     */
+    public double getPercentile(float percentile) {
+        checkResultsCalculated(true);
+        if (percentile == 0.0f) {
+            return descriptiveStatistics.getMin();
+        } else if (percentile == 100.0f) {
+            return descriptiveStatistics.getMax();
+        } else {
+            return this.percentile.evaluate(percentile);
+        }
     }
 
     public double getMedian() {
@@ -195,17 +208,31 @@ public final class Trial {
     }
 
     /**
-     * Returns changes from baseline or {@code null} if no baseline exists.
+     * Returns changes from baseline at the given percentile.
+     *
+     * @param percentile [0.0F, 100.0F]
      * @return Change in percent from baseline. {@code 1.0} is 100%.
      */
-    public Double getChangeFromBaseline() {
+    public double getChangeFromBaseline(float percentile) {
         checkResultsCalculated(true);
-        if (experiment.getBaseline() == null) return null;
+        if (experiment.getBaseline() == null) {
+            throw new IllegalStateException("No baseline exists");
+        }
 
-        double newMedian = getMedian();
+        double newMedian = getPercentile(percentile);
         double oldMedian = experiment.getBaseline().getMedian();
 
         return (oldMedian - newMedian) / oldMedian;
+    }
+
+    public Double getChangeFromBaselineMean() {
+        checkResultsCalculated(true);
+        if (experiment.getBaseline() == null) return null;
+
+        double newMean = getMean();
+        double oldMean = experiment.getBaseline().getMean();
+
+        return (oldMean - newMean) / oldMean;
     }
 
     public String getUnit() {
@@ -227,7 +254,6 @@ public final class Trial {
             throw new RuntimeException("Trial is not complete. Results not yet available");
         }
     }
-
 
     @Override
     public boolean equals(Object obj) {

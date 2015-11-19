@@ -3,7 +3,9 @@ package dk.ilios.spanner;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -16,6 +18,9 @@ import dk.ilios.spanner.util.ShortDuration;
  * Class for adding custom configuration of a Spanner run.
  */
 public class SpannerConfig {
+
+    public static final float NOT_ENABLED = -1.0F;
+
     private final File resultsFolder;
     private final File baseLineFile;
     private final boolean warnIfWrongTestGranularity;
@@ -23,7 +28,8 @@ public class SpannerConfig {
     private final URL uploadUrl;
     private final String apiKey;
     private final boolean uploadResults;
-    private float baselineFailure;
+    private final Map<Float, Float> percentileFailureLimits;
+    private float meanFailureLimit;
     private int maxBenchmarkThreads;
     private int trialsPrExperiment;
     private Set<InstrumentConfig> configs = new HashSet<>();
@@ -36,7 +42,8 @@ public class SpannerConfig {
         this.uploadResults = builder.uploadResults;
         this.uploadUrl = builder.uploadUrl;
         this.apiKey = builder.apiKey;
-        this.baselineFailure = builder.baselineFailure;
+        this.percentileFailureLimits = builder.percentileFailureLimits;
+        this.meanFailureLimit = builder.meanFailureLimit;
         this.maxBenchmarkThreads = builder.maxBenchmarkThreads;
         this.trialsPrExperiment = builder.trialsPrExperiment;
         if (builder.instrumentationConfigs.isEmpty()) {
@@ -75,10 +82,6 @@ public class SpannerConfig {
         return uploadResults;
     }
 
-    public float getBaselineFailure() {
-        return baselineFailure;
-    }
-
     public Set<InstrumentConfig> instrumentConfigurations() {
         return configs;
     }
@@ -95,6 +98,64 @@ public class SpannerConfig {
         return ShortDuration.of(5, TimeUnit.MINUTES); // TODO Make this configurable?
     }
 
+    public float getMinFailureDiff() {
+        Float result = percentileFailureLimits.get(0F);
+        if (result == null) {
+            return NOT_ENABLED;
+        } else {
+            return result;
+        }
+    }
+
+    public float getMaxFailureDiff() {
+        Float result = percentileFailureLimits.get(1.0F);
+        if (result == null) {
+            return NOT_ENABLED;
+        } else {
+            return result;
+        }
+    }
+
+    public float getMeanFailureLimit() {
+        return meanFailureLimit;
+    }
+
+    public float getMedianFailureDiff() {
+        Float result = percentileFailureLimits.get(0.5F);
+        if (result == null) {
+            return NOT_ENABLED;
+        } else {
+            return result;
+        }
+    }
+
+    /**
+     * Returns the change in percent that is the maximum amount a trial can change compared
+     * to its baseline for the given percentile.
+     *
+     * @param percentile The difference in percent a trial must change for this percentile
+     * @return Maximum change in percent for the percentile: [0, 1.0] or {@link #NOT_ENABLED}.
+     */
+    public float getPercentileFailureDiff(float percentile) {
+        Float result = percentileFailureLimits.get(percentile);
+        if (result == null) {
+            return NOT_ENABLED;
+        } else {
+            return result;
+        }
+    }
+
+    /**
+     * Returns a list of all percentiles that should fail if it deviates from the baseline.
+     * Min. is returned as {@code 0F} while max is returned as {@code 1.0F}.
+     *
+     * Being in this list does not mean that the percentile is enabled. It is still necessary to test for
+     * {@link SpannerConfig#NOT_ENABLED}.
+     */
+    public Set<Float> getPercentileFailureLimits() {
+        return percentileFailureLimits.keySet();
+    }
+
     /**
      * Builder for fluent construction of a SpannerConfig object.
      */
@@ -106,10 +167,12 @@ public class SpannerConfig {
         private boolean uploadResults = false;
         private String apiKey = "";
         private URL uploadUrl = getUrl("https://microbenchmarks.appspot.com");
-        private float baselineFailure = 0.2f; // 20% difference from baseline will fail the experiment.
         private int maxBenchmarkThreads = 1; // Maximum number of concurrent benchmark threads.
         private Set<InstrumentConfig> instrumentationConfigs = new HashSet<>();
         private int trialsPrExperiment = 1;
+        private float meanFailureLimit = NOT_ENABLED;
+        // All values > 0. All keys: [0,100] -> 0 = Min, 100 = max, 50 = median
+        private Map<Float, Float> percentileFailureLimits = new HashMap<>();
 
         public Builder() {
         }
@@ -135,8 +198,6 @@ public class SpannerConfig {
             this.resultsFolder = dir;
             return this;
         }
-
-        // TODO Add support for overriding the filename
 
         /**
          * Set a baseline for the tests being run.
@@ -198,12 +259,73 @@ public class SpannerConfig {
         }
 
         /**
-         * The difference in percent from the baseline allowed before the experiment will be a failure.
-         * @param percentage [0-1.0] for [0-100%]
+         * The difference in percent from the baseline minimum value allowed before the experiment will be a failure.
+         * Use {@code -1} to disable it.
+         *
+         * Default value is {@code -1}.
+
+         * @param percentage {@code 0.0F} is 0%, {@code 1.0F} is 100%.
          * @return the Builder.
          */
-        public Builder baselineFailure(float percentage) {
-            baselineFailure = Math.abs(percentage);
+        public Builder minFailureLimit(float percentage) {
+            return percentileFailureLimit(0F, percentage);
+        }
+
+        /**
+         * The difference in percent from the baseline maximum value allowed before the experiment will be a failure.
+         * Use {@code -1} to disable it.
+         *
+         * Default value is {@code -1}.
+
+         * @param percentage {@code 0.0F} is 0%, {@code 1.0F} is 100%.
+         * @return the Builder.
+         */
+        public Builder maxFailureLimit(float percentage) {
+            return percentileFailureLimit(100.0F, percentage);
+        }
+
+        /**
+         * The difference in percent from the baseline mean value allowed before the experiment will be a failure.
+         * Use {@code -1} to disable it.
+         *
+         * Default value is {@code -1}.
+
+         * @param percentage {@code 0.0F} is 0%, {@code 1.0F} is 100%.
+         * @return the Builder.
+         */
+        public Builder medianFailureLimit(float percentage) {
+            return percentileFailureLimit(50.0F, percentage);
+        }
+
+        /**
+         * The difference in percent from the baseline percentile allowed before the experiment will be a failure.
+         * Use {@code -1} to disable it.
+         *
+         * Default value is {@code -1}.
+         *
+         * @param percentile [0.0F, 100.0F]
+         * @param percentage {@code 0.0F} is 0%, {@code 1.0F} is 100%.
+         * @return the Builder.
+         */
+        public Builder percentileFailureLimit(float percentile, float percentage) {
+            if (percentage < 0.0F || percentile > 100.0F) {
+                throw new IllegalArgumentException("Percentile must be [0, 100.0]. Yours was: " + percentile);
+            }
+            percentileFailureLimits.put(percentile, Math.abs(percentage));
+            return this;
+        }
+
+        /**
+         * The difference in percent from the baseline average (mean) value allowed before the experiment will be a failure.
+         * Use {@code -1} to disable it.
+         *
+         * Default value is {@code -1}.
+
+         * @param percentage {@code 0.0F} is 0%, {@code 1.0F} is 100%.
+         * @return the Builder.
+         */
+        public Builder meanFailureLimit(float percentage) {
+            meanFailureLimit = Math.abs(percentage);
             return this;
         }
 

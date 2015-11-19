@@ -194,28 +194,6 @@ public class Spanner {
         ImmutableSet.Builder<Instrument> builder = ImmutableSet.builder();
         Set<InstrumentConfig> configuredInstruments = benchmarkConfig.instrumentConfigurations();
         for (InstrumentConfig instrumentConfig : configuredInstruments) {
-            //FIXME Add back support for configuring the instruments
-//            if (!configuredInstruments.contains(instrumentName)) {
-//                throw new InvalidCommandException("%s is not a configured instrument (%s). "
-//                        + "use --print-config to see the configured instruments.",
-//                        instrumentName, configuredInstruments);
-//            }
-//            final InstrumentConfig instrumentConfig = config.getInstrumentConfig(instrumentName);
-//                Injector instrumentInjector = injector.createChildInjector(new AbstractModule() {
-//                    @Override protected void configure() {
-//                        bind(InstrumentConfig.class).toInstance(instrumentConfig);
-//                    }
-//
-//                    @Provides @InstrumentOptions
-//                    ImmutableMap<String, String> provideInstrumentOptions(InstrumentConfig config) {
-//                        return config.options();
-//                    }
-//
-//                    @Provides @InstrumentName String provideInstrumentName() {
-//                        return instrumentName;
-//                    }
-//                });
-//            String className = instrumentConfig.className();
             try {
                 Class<? extends Instrument> clazz = instrumentConfig.getInstrumentClass();
                 ShortDuration timerGranularity = new NanoTimeGranularityTester().testNanoTimeGranularity();

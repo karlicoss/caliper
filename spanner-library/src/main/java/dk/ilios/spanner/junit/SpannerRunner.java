@@ -1,14 +1,7 @@
 package dk.ilios.spanner.junit;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
-import com.google.common.collect.Multimaps;
-import com.google.common.collect.Ordering;
 
-import org.apache.commons.math.stat.descriptive.rank.Percentile;
 import org.junit.Ignore;
 import org.junit.runner.Description;
 import org.junit.runner.Runner;
@@ -20,9 +13,8 @@ import org.junit.runners.model.TestClass;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 import dk.ilios.spanner.Benchmark;
 import dk.ilios.spanner.BenchmarkConfiguration;
@@ -30,7 +22,6 @@ import dk.ilios.spanner.CustomMeasurement;
 import dk.ilios.spanner.Spanner;
 import dk.ilios.spanner.SpannerConfig;
 import dk.ilios.spanner.exception.TrialFailureException;
-import dk.ilios.spanner.model.Measurement;
 import dk.ilios.spanner.model.Trial;
 
 /**
@@ -147,57 +138,13 @@ public class SpannerRunner extends Runner {
 
             @Override
             public void trialSuccess(Trial trial, Trial.Result result) {
-                double resultMedian = getMedian(result.getTrial().measurements());
+                double resultMedian = result.getTrial().getMedian();
                 Description spec = getDescription(trial, resultMedian);
                 runNotifier.fireTestStarted(spec);
                 if (trial.hasBaseline()) {
-                    double absChange = Math.abs(trial.getChangeFromBaseline());
-                    if (absChange > benchmarkConfiguration.getBaselineFailure()) {
-                        runNotifier.fireTestFailure(new Failure(spec,
-                                new TrialFailureException(String.format("Change from baseline was to big: %.2f%%. Limit is %.2f%%",
-                                        absChange * 100, benchmarkConfiguration.getBaselineFailure() * 100))));
-                    }
+                    checkMetricChanges(trial, benchmarkConfiguration, runNotifier);
                 }
                 runNotifier.fireTestFinished(spec);
-            }
-
-            // FIXME Move this to Trial.Result
-            private double getMedian(List<Measurement> trialMeasurements) {
-
-                // Group by measurement description
-                // TODO Figure out why measurents can have multiple descriptions
-                ImmutableListMultimap<String, Measurement> measurementsIndex =
-                        new ImmutableListMultimap.Builder<String, Measurement>()
-                                .orderKeysBy(Ordering.natural())
-                                .putAll(Multimaps.index(trialMeasurements, new Function<Measurement, String>() {
-                                    @Override
-                                    public String apply(Measurement input) {
-                                        return input.description();
-                                    }
-                                }))
-                                .build();
-
-                for (Map.Entry<String, Collection<Measurement>> entry : measurementsIndex.asMap().entrySet()) {
-                    Collection<Measurement> measurements = entry.getValue();
-                    ImmutableSet<String> units = FluentIterable.from(measurements)
-                            .transform(new Function<Measurement, String>() {
-                                @Override
-                                public String apply(Measurement input) {
-                                    return input.value().unit();
-                                }
-                            }).toSet();
-                    double[] weightedValues = new double[measurements.size()];
-                    int i = 0;
-                    for (Measurement measurement : measurements) {
-                        weightedValues[i] = measurement.value().magnitude() / measurement.weight();
-                        i++;
-                    }
-                    Percentile percentile = new Percentile();
-                    percentile.setData(weightedValues);
-                    return percentile.evaluate(50);
-                }
-
-                return -1;
             }
 
             @Override
@@ -222,47 +169,106 @@ public class SpannerRunner extends Runner {
             public void onError(Exception error) {
                 throw new RuntimeException(error);
             }
-
-            private Description getDescription(Trial trial) {
-                Method method = trial.experiment().instrumentation().benchmarkMethod();
-                return Description.createTestDescription(testClass.getJavaClass(), method.getName());
-            }
-
-            private Description getDescription(Trial trial, double result) {
-                Method method = trial.experiment().instrumentation().benchmarkMethod();
-                String resultString = String.format(" [%.2f %s.]", result, trial.getUnit().toLowerCase());
-                resultString += formatBenchmarkChange(trial);
-
-                // Benchmark parameters
-                ImmutableSortedMap<String, String> benchmarkParameters = trial.experiment().benchmarkSpec().parameters();
-                String params = "";
-                if (benchmarkParameters.size() > 0) {
-                    params = " " + benchmarkParameters.toString();
-                }
-
-                // Trial number
-                String trialNumber = "";
-                if (benchmarkConfiguration.trialsPrExperiment() > 1) {
-                    trialNumber = "#" + trial.getTrialNumber();
-                }
-
-                String methodDescription;
-                methodDescription = String.format("%s%s%s %s",
-                        method.getName(),
-                        trialNumber,
-                        params,
-                        resultString);
-                return Description.createTestDescription(testClass.getJavaClass(), methodDescription);
-            }
         });
+    }
+
+    // Verify that all configured metric changes does not exceed their allowed value
+    private void checkMetricChanges(Trial trial, SpannerConfig benchmarkConfiguration, RunNotifier runNotifier) {
+        StringBuilder sb = new StringBuilder();
+
+        // Check all configured percentiles
+        Set<Float> percentiles = benchmarkConfiguration.getPercentileFailureLimits();
+        for (Float percentile : percentiles) {
+            float maxLimit = benchmarkConfiguration.getPercentileFailureDiff(percentile);
+            if (maxLimit == SpannerConfig.NOT_ENABLED) {
+                continue;
+            }
+            Double change = trial.getChangeFromBaseline(percentile);
+            if (Math.abs(change) > maxLimit) {
+                sb.append("\n");
+                String errorMsg = String.format("Change from baseline at %s was to big: %.2f%%. Limit is %.2f%%",
+                        prettyPercentile(percentile), change * 100, maxLimit * 100);
+                sb.append(errorMsg);
+            }
+        }
+
+        float meanLimit = benchmarkConfiguration.getMeanFailureLimit();
+        double meanChange = Math.abs(trial.getChangeFromBaselineMean());
+        if (meanChange > meanLimit) {
+            sb.append("\n");
+            sb.append(String.format("Change from baseline mean was to big: %.2f%%. Limit is %.2f%%",
+                    meanChange * 100, meanLimit * 100));
+        }
+
+        if (sb.length() > 0) {
+            Description spec = getDescription(trial);
+            runNotifier.fireTestFailure(new Failure(spec, new TrialFailureException(sb.toString())));
+        }
+    }
+
+    private String prettyPercentile(Float percentile) {
+        if (percentile == 0.0F) {
+            return "Min.";
+        } else if (percentile == 100.0F) {
+            return "Max.";
+        } else if (percentile == 50.0F) {
+            return "Median";
+        } else {
+            return percentile + ". percentile";
+        }
     }
 
     private String formatBenchmarkChange(Trial trial) {
         if (trial.hasBaseline()) {
-            Double change = trial.getChangeFromBaseline() * 100;
+            Double change = trial.getChangeFromBaseline(50) * 100;
             return String.format("[%s%.2f%%]", change > 0 ? "+" : "", change);
         } else {
             return "";
         }
+    }
+
+    /**
+     * Returns the description used by the JUnit GUI.
+     *
+     * @param trial trial output to format.
+     * @return description of the trial.
+     */
+    private Description getDescription(Trial trial) {
+        Method method = trial.experiment().instrumentation().benchmarkMethod();
+        return Description.createTestDescription(testClass.getJavaClass(), method.getName());
+    }
+
+    /**
+     * Returns the description of a successfull Trial used by the JUnit GUI.
+     *
+     * @param trial trial output to format.
+     * @param result the result of the benchmark trial.
+     * @return description of the trial.
+     */
+    private Description getDescription(Trial trial, double result) {
+        Method method = trial.experiment().instrumentation().benchmarkMethod();
+        String resultString = String.format(" [%.2f %s.]", result, trial.getUnit().toLowerCase());
+        resultString += formatBenchmarkChange(trial);
+
+        // Benchmark parameters
+        ImmutableSortedMap<String, String> benchmarkParameters = trial.experiment().benchmarkSpec().parameters();
+        String params = "";
+        if (benchmarkParameters.size() > 0) {
+            params = " " + benchmarkParameters.toString();
+        }
+
+        // Trial number
+        String trialNumber = "";
+        if (benchmarkConfiguration.trialsPrExperiment() > 1) {
+            trialNumber = "#" + trial.getTrialNumber();
+        }
+
+        String methodDescription;
+        methodDescription = String.format("%s%s%s %s",
+                method.getName(),
+                trialNumber,
+                params,
+                resultString);
+        return Description.createTestDescription(testClass.getJavaClass(), methodDescription);
     }
 }

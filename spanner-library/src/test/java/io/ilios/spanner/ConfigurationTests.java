@@ -24,7 +24,10 @@ public class ConfigurationTests {
         assertEquals("", defaultConfig.getApiKey());
         assertEquals(null, defaultConfig.getBaseLineFile());
         assertEquals(null, defaultConfig.getResultsFolder());
-        assertEquals(0.2f, defaultConfig.getBaselineFailure(), 0);
+        assertEquals(SpannerConfig.NOT_ENABLED, defaultConfig.getMinFailureDiff(), 0.0f);
+        assertEquals(SpannerConfig.NOT_ENABLED, defaultConfig.getMeanFailureLimit(), 0.0f);
+        assertEquals(SpannerConfig.NOT_ENABLED, defaultConfig.getMedianFailureDiff(), 0.0f);
+        assertEquals(SpannerConfig.NOT_ENABLED, defaultConfig.getMaxFailureDiff(), 0.0f);
         assertFalse(defaultConfig.isUploadResults());
         assertTrue(defaultConfig.warnIfWrongTestGranularity());
         assertEquals(null, defaultConfig.getBaselineOutputFile());

@@ -19,7 +19,7 @@ public class ActivityBenchmarks {
     public SpannerConfig configuration = new SpannerConfig.Builder()
             .saveResults(resultsDir)
             .useBaseline(baseLineFile)
-            .baselineFailure(1.0f) // Accept 100% difference, normally should be 10-15%
+            .medianFailureLimit(1.0f) // Accept 100% difference, normally should be 10-15%
             .uploadResults()
             .build();
 
