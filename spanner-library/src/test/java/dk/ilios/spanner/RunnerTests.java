@@ -1,4 +1,4 @@
-package io.ilios.spanner;
+package dk.ilios.spanner;
 
 import org.junit.Test;
 
@@ -6,14 +6,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import dk.ilios.spanner.Spanner;
-import dk.ilios.spanner.SpannerCallbackAdapter;
-import io.ilios.spanner.benchmarks.invalid.InvalidParameterBenchmark;
-import io.ilios.spanner.benchmarks.invalid.PrivateBenchmark;
-import io.ilios.spanner.benchmarks.invalid.StaticBenchmark;
-import io.ilios.spanner.benchmarks.valid.DefaultConfig;
-import io.ilios.spanner.benchmarks.valid.Empty;
-import io.ilios.spanner.benchmarks.valid.ValidBenchmarkMethods;
+import dk.ilios.spanner.benchmarks.invalid.InvalidParameterBenchmark;
+import dk.ilios.spanner.benchmarks.invalid.PrivateBenchmark;
+import dk.ilios.spanner.benchmarks.invalid.StaticBenchmark;
+import dk.ilios.spanner.benchmarks.valid.DefaultConfig;
+import dk.ilios.spanner.benchmarks.valid.Empty;
+import dk.ilios.spanner.benchmarks.valid.ValidBenchmarkMethods;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;

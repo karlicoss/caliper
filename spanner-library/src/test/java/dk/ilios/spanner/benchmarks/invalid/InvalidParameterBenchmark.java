@@ -15,7 +15,7 @@
  *
  */
 
-package io.ilios.spanner.benchmarks.valid;
+package dk.ilios.spanner.benchmarks.invalid;
 
 import org.junit.runner.RunWith;
 
@@ -23,19 +23,9 @@ import dk.ilios.spanner.Benchmark;
 import dk.ilios.spanner.junit.SpannerRunner;
 
 @RunWith(SpannerRunner.class)
-public class DefaultConfig {
+public class InvalidParameterBenchmark {
 
     @Benchmark
-    public void defaultConfig(long reps) {
-        String str;
-        for (long i = 0; i < reps; i++) {
-            str = "";
-            str += "a";
-            str += "b";
-            str += "c";
-            str += "d";
-            str += "e";
-            str += "f";
-        }
+    public void anyNonIntParamFails(String foo) {
     }
 }

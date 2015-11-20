@@ -33,11 +33,13 @@ android {
 
     testOptions {
         unitTests.returnDefaultValues = true // Mock Android framework methods/clases
+        unitTests.all {
+            exclude 'dk/ilios/spanner/benchmarks/**'
+        }
     }
 }
 
 dependencies {
-
     // Should be provided by the application, and only required for Spanner to
     // work with JUnit.
     provided 'com.android.support:support-annotations:23.0.1'

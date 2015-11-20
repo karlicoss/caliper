@@ -1,4 +1,4 @@
-package io.ilios.spanner;
+package dk.ilios.spanner;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -8,8 +8,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-
-import dk.ilios.spanner.SpannerConfig;
 
 import static org.junit.Assert.*;
 
@@ -30,10 +28,11 @@ public class ConfigurationTests {
         assertEquals(SpannerConfig.NOT_ENABLED, defaultConfig.getMaxFailureLimit(), 0.0f);
         assertFalse(defaultConfig.isUploadResults());
         assertTrue(defaultConfig.warnIfWrongTestGranularity());
-        assertEquals(null, defaultConfig.getBaselineOutputFile());
         assertEquals(new URL("https://microbenchmarks.appspot.com"), defaultConfig.getUploadUrl());
         assertEquals(1, defaultConfig.getNoBenchmarkThreads());
         assertEquals(1, defaultConfig.getTrialsPrExperiment());
+        assertEquals(0, defaultConfig.getResultProcessors().size());
+        assertEquals(1, defaultConfig.getInstrumentConfigurations().size());
     }
 
     @Test
@@ -44,12 +43,12 @@ public class ConfigurationTests {
 
         SpannerConfig.Builder builder = new SpannerConfig.Builder();
         try {
-            builder.saveResults(nullFolder);
+            builder.saveResults(nullFolder, "foo");
             fail();
         } catch (IllegalArgumentException ignored) {
         }
         try {
-            builder.saveResults(readonlyFolder);
+            builder.saveResults(readonlyFolder, "foo");
             fail();
         } catch (IllegalArgumentException ignored) {
         }

@@ -15,17 +15,38 @@
  *
  */
 
-package io.ilios.spanner.benchmarks.invalid;
+package dk.ilios.spanner.benchmarks.valid;
 
 import org.junit.runner.RunWith;
 
 import dk.ilios.spanner.Benchmark;
+import dk.ilios.spanner.BenchmarkConfiguration;
+import dk.ilios.spanner.SpannerConfig;
+import dk.ilios.spanner.config.RuntimeInstrumentConfig;
 import dk.ilios.spanner.junit.SpannerRunner;
 
 @RunWith(SpannerRunner.class)
-public class InvalidParameterBenchmark {
+public class ValidBenchmarkMethods {
+
+    @BenchmarkConfiguration
+    public SpannerConfig config = new SpannerConfig.Builder()
+            .addInstrument(RuntimeInstrumentConfig.unittestConfig())
+            .build();
 
     @Benchmark
-    public void anyNonIntParamFails(String foo) {
+    public void noParams() {
+    }
+
+    @Benchmark
+    public void intReps(int reps) {
+    }
+
+    @Benchmark
+    public void longReps(long reps) {
+    }
+
+    @Benchmark
+    public boolean anyReturnType(int reps) {
+        return false;
     }
 }

@@ -155,10 +155,6 @@ public class Spanner {
                 OutputFileDumper dumper = new OutputFileDumper(gson, benchmarkConfig.getResultsFile());
                 processors.add(dumper);
             }
-            if (benchmarkConfig.getBaselineOutputFile() != null) {
-                OutputFileDumper dumper = new OutputFileDumper(gson, benchmarkConfig.getBaseLineFile());
-                processors.add(dumper);
-            }
             if (benchmarkConfig.isUploadResults()) {
                 HttpUploader uploader = new HttpUploader(stdOut, gson, benchmarkConfig);
                 processors.add(uploader);
@@ -193,7 +189,7 @@ public class Spanner {
 
     public ImmutableSet<Instrument> getInstruments(SpannerConfig benchmarkConfig) throws InvalidCommandException {
         ImmutableSet.Builder<Instrument> builder = ImmutableSet.builder();
-        Set<InstrumentConfig> configuredInstruments = benchmarkConfig.instrumentConfigurations();
+        Set<InstrumentConfig> configuredInstruments = benchmarkConfig.getInstrumentConfigurations();
         for (InstrumentConfig instrumentConfig : configuredInstruments) {
             try {
                 Class<? extends Instrument> clazz = instrumentConfig.getInstrumentClass();

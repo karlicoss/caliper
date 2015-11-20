@@ -15,7 +15,7 @@
  *
  */
 
-package io.ilios.spanner.benchmarks.invalid;
+package dk.ilios.spanner.benchmarks.invalid;
 
 import org.junit.runner.RunWith;
 

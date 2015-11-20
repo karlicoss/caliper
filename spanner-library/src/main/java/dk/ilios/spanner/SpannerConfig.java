@@ -24,7 +24,6 @@ public class SpannerConfig {
     private final File resultsFile;
     private final File baseLineFile;
     private final boolean warnIfWrongTestGranularity;
-    private final File baselineOutputFile;
     private final URL uploadUrl;
     private final String apiKey;
     private final boolean uploadResults;
@@ -39,7 +38,6 @@ public class SpannerConfig {
         this.resultsFile = builder.resultsFile;
         this.baseLineFile = builder.baseLineFile;
         this.warnIfWrongTestGranularity = builder.warnIfWrongTestGranularity;
-        this.baselineOutputFile = builder.baselineOutputFile;
         this.uploadResults = builder.uploadResults;
         this.uploadUrl = builder.uploadUrl;
         this.apiKey = builder.apiKey;
@@ -67,10 +65,6 @@ public class SpannerConfig {
         return warnIfWrongTestGranularity;
     }
 
-    public File getBaselineOutputFile() {
-        return baselineOutputFile;
-    }
-
     public URL getUploadUrl() {
         return uploadUrl;
     }
@@ -83,7 +77,7 @@ public class SpannerConfig {
         return uploadResults;
     }
 
-    public Set<InstrumentConfig> instrumentConfigurations() {
+    public Set<InstrumentConfig> getInstrumentConfigurations() {
         return configs;
     }
 
@@ -168,7 +162,6 @@ public class SpannerConfig {
         private File resultsFile = null;
         private File baseLineFile = null;
         private boolean warnIfWrongTestGranularity = true;
-        private File baselineOutputFile = null;
         private boolean uploadResults = false;
         private String apiKey = "";
         private URL uploadUrl = getUrl("https://microbenchmarks.appspot.com");
