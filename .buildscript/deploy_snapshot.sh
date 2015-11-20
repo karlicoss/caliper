@@ -6,7 +6,7 @@
 # http://benlimmer.com/2013/12/26/automatically-publish-javadoc-to-gh-pages-with-travis-ci/
 
 SLUG="cmelchior/spanner"
-JDK="oraclejdk8"
+JDK="oraclejdk7"
 BRANCH="master"
 
 set -e
