@@ -1,23 +1,18 @@
 package dk.ilios.spanner.trial;
 
-import com.google.common.base.Stopwatch;
 import com.google.common.base.Ticker;
 
 import java.util.Collections;
 import java.util.concurrent.Callable;
 
 import dk.ilios.spanner.Spanner;
-import dk.ilios.spanner.SpannerConfig;
+import dk.ilios.spanner.benchmark.BenchmarkClass;
 import dk.ilios.spanner.bridge.ShouldContinueMessage;
 import dk.ilios.spanner.bridge.StartMeasurementLogMessage;
 import dk.ilios.spanner.bridge.StopMeasurementLogMessage;
 import dk.ilios.spanner.internal.MeasurementCollectingVisitor;
-import dk.ilios.spanner.benchmark.BenchmarkClass;
 import dk.ilios.spanner.model.Trial;
-import dk.ilios.spanner.util.ShortDuration;
 import dk.ilios.spanner.worker.Worker;
-
-import static java.util.concurrent.TimeUnit.NANOSECONDS;
 
 /**
  * A Trial that is running on the thread it was started on.
@@ -28,10 +23,7 @@ import static java.util.concurrent.TimeUnit.NANOSECONDS;
 public class AndroidTrial implements Callable<Trial.Result> {
 
     private final Trial trial;
-    private final SpannerConfig options;
     private final MeasurementCollectingVisitor measurementCollectingVisitor;
-    private final TrialOutputLogger trialOutput;
-    private final Stopwatch trialStopwatch = Stopwatch.createUnstarted();
     private final BenchmarkClass benchmark;
     private final Spanner.Callback callback;
 
@@ -39,13 +31,9 @@ public class AndroidTrial implements Callable<Trial.Result> {
             Trial trial,
             BenchmarkClass benchmarkClass,
             MeasurementCollectingVisitor measurementCollectingVisitor,
-            SpannerConfig options,
-            TrialOutputLogger trialOutput,
             Spanner.Callback callback) {
         this.trial = trial;
-        this.options = options;
         this.measurementCollectingVisitor = measurementCollectingVisitor;
-        this.trialOutput = trialOutput;
         this.benchmark = benchmarkClass;
         this.callback = callback;
     }
@@ -99,14 +87,4 @@ public class AndroidTrial implements Callable<Trial.Result> {
         trial.addAllMessages(measurementCollectingVisitor.getMessages());
         return trial.getResult();
     }
-
-
-    private long getTrialTimeLimitTrialNanos() {
-        ShortDuration timeLimit = options.getTimeLimit();
-        if (ShortDuration.zero().equals(timeLimit)) {
-            return Long.MAX_VALUE;
-        }
-        return timeLimit.to(NANOSECONDS);
-    }
-
 }

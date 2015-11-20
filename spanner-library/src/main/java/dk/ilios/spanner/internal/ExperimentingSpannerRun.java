@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2011 Google Inc.
+ * Copyright (C) 2015 Christian Melchior
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  * in compliance with the License. You may obtain a copy of the License at
@@ -78,7 +79,6 @@ public final class ExperimentingSpannerRun implements SpannerRun {
     private final SpannerConfig options;
     private final StdOut stdout;
     private final Run runInfo;
-    private final ImmutableSet<Instrument> instruments;
     private final ImmutableSet<ResultProcessor> resultProcessors;
     private final ExperimentSelector selector;
     private final ListeningExecutorService executorProvider;
@@ -89,7 +89,6 @@ public final class ExperimentingSpannerRun implements SpannerRun {
             SpannerConfig configuration,
             StdOut stdout,
             Run runInfo,
-            ImmutableSet<Instrument> instruments,
             ImmutableSet<ResultProcessor> resultProcessors,
             ExperimentSelector selector,
             ListeningExecutorService executorProvider,
@@ -99,14 +98,12 @@ public final class ExperimentingSpannerRun implements SpannerRun {
         this.options = configuration;
         this.stdout = stdout;
         this.runInfo= runInfo;
-        this.instruments = instruments;
         this.resultProcessors = resultProcessors;
         this.selector = selector;
         this.executorProvider = executorProvider;
         this.baselineData = baselineData;
         this.callback = callback;
     }
-
 
     @Override
     public void run() throws InvalidBenchmarkException {
@@ -199,10 +196,6 @@ public final class ExperimentingSpannerRun implements SpannerRun {
         }
     }
 
-    private Trial getBaselineData(Trial.Result result) {
-        return null;
-    }
-
     /**
      * Schedule all the trials.
      * <p>
@@ -271,15 +264,13 @@ public final class ExperimentingSpannerRun implements SpannerRun {
                         .instrumentSpec(instrumentSpec)
                         .build();
 
-                AndroidTrial runLoop = new AndroidTrial(trial, selector.benchmarkClass(), measurementsVisitor, options, null, callback);
+                AndroidTrial runLoop = new AndroidTrial(trial, selector.benchmarkClass(), measurementsVisitor, callback);
                 ScheduledTrial scheduledTrial = new ScheduledTrial(trial, runLoop, TrialSchedulingPolicy.SERIAL);
                 trials.add(scheduledTrial);
             }
         }
         return trials;
     }
-
-
 
     /**
      * Attempts to run each given scenario once, in the current VM. Returns a set of all of the
@@ -299,7 +290,7 @@ public final class ExperimentingSpannerRun implements SpannerRun {
                     // discard 'benchmark' now; the worker will have to instantiate its own anyway
 //                    benchmarkClass.cleanup(benchmarkInstance);
                 }
-            } catch (SkipThisScenarioException ignoreScenario) {
+            } catch (SkipThisScenarioException ignored) {
             }
         }
         return builder.build();

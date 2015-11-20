@@ -18,9 +18,6 @@
 
 package dk.ilios.spanner.model;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static com.google.common.base.Preconditions.checkState;
-
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
@@ -33,8 +30,11 @@ import java.util.List;
 import java.util.UUID;
 
 import dk.ilios.spanner.internal.Experiment;
-import dk.ilios.spanner.trial.TrialContext;
 import dk.ilios.spanner.json.ExcludeFromJson;
+import dk.ilios.spanner.trial.TrialContext;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static com.google.common.base.Preconditions.checkState;
 
 /**
  * An invocation of a single {@link Experiment}.
@@ -50,7 +50,7 @@ public final class Trial {
     private Scenario scenario;
     private Experiment experiment;
     private List<Measurement> measurements = new ArrayList<>();
-    private List<String> messages = new ArrayList<String>();
+    private List<String> messages = new ArrayList<>();
 
     @ExcludeFromJson
     private int trialNumber;
@@ -249,12 +249,6 @@ public final class Trial {
         }
     }
 
-    private void checkNotIsComplete() {
-        if (!trialComplete) {
-            throw new RuntimeException("Trial is not complete. Results not yet available");
-        }
-    }
-
     @Override
     public boolean equals(Object obj) {
         if (obj == this) {
@@ -320,17 +314,9 @@ public final class Trial {
             return this;
         }
 
-        public Builder instrumentSpec(InstrumentSpec.Builder instrumentSpecBuilder) {
-            return instrumentSpec(instrumentSpecBuilder.build());
-        }
-
         public Builder instrumentSpec(InstrumentSpec instrumentSpec) {
             this.instrumentSpec = checkNotNull(instrumentSpec);
             return this;
-        }
-
-        public Builder scenario(Scenario.Builder scenarioBuilder) {
-            return scenario(scenarioBuilder.build());
         }
 
         public Builder scenario(Scenario scenario) {

@@ -165,7 +165,7 @@ public class SpannerRunner extends Runner {
 
             @Override
             public void onError(Exception error) {
-                // Something broke horribly. Further testing will be abort.
+                // Something broke horribly. Further testing will be aborted.
                 Description spec = getDescription(null);
                 runNotifier.fireTestStarted(spec);
                 runNotifier.fireTestFailure(new Failure(spec, error));
@@ -246,7 +246,7 @@ public class SpannerRunner extends Runner {
     }
 
     /**
-     * Returns the description of a successfull Trial used by the JUnit GUI.
+     * Returns the description of a successful Trial used by the JUnit GUI.
      *
      * @param trial trial output to format.
      * @param result the result of the benchmark trial.

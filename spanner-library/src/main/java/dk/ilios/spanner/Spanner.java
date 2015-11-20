@@ -29,7 +29,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -38,17 +37,16 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Executors;
 
+import dk.ilios.spanner.benchmark.BenchmarkClass;
 import dk.ilios.spanner.config.InstrumentConfig;
-import dk.ilios.spanner.config.InvalidConfigurationException;
 import dk.ilios.spanner.exception.InvalidCommandException;
 import dk.ilios.spanner.http.HttpUploader;
 import dk.ilios.spanner.internal.AndroidExperimentSelector;
-import dk.ilios.spanner.internal.SpannerRun;
 import dk.ilios.spanner.internal.ExperimentSelector;
 import dk.ilios.spanner.internal.ExperimentingSpannerRun;
 import dk.ilios.spanner.internal.Instrument;
 import dk.ilios.spanner.internal.InvalidBenchmarkException;
-import dk.ilios.spanner.benchmark.BenchmarkClass;
+import dk.ilios.spanner.internal.SpannerRun;
 import dk.ilios.spanner.json.AnnotationExclusionStrategy;
 import dk.ilios.spanner.json.InstantTypeAdapter;
 import dk.ilios.spanner.log.AndroidStdOut;
@@ -95,11 +93,6 @@ public class Spanner {
         } catch (InvalidBenchmarkException e) {
             throw new IllegalArgumentException(e);
         }
-    }
-
-    private Spanner(BenchmarkClass benchmarkClass, Callback callback) {
-        this.benchmarkClass = benchmarkClass;
-        this.callback = callback;
     }
 
     public void start() {
@@ -167,7 +160,6 @@ public class Spanner {
                     benchmarkConfig,
                     stdOut,
                     runInfo,
-                    instruments,
                     resultProcessors,
                     experimentSelector,
                     executor,
@@ -194,12 +186,9 @@ public class Spanner {
                 Instrument instrument = (Instrument) clazz.getDeclaredConstructors()[0].newInstance(
                         timerGranularity, instrumentConfig);
                 builder.add(instrument);
-            } catch (InstantiationException e) {
+            } catch (Exception e) {
                 callback.onError(e);
-            } catch (IllegalAccessException e) {
-                callback.onError(e);
-            } catch (InvocationTargetException e) {
-                callback.onError(e);
+                break;
             }
         }
         return builder.build();

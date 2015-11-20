@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2012 Google Inc.
+ * Copyright (C) 2015 Christian Melchior
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,48 +13,28 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
+ *
+ * Original author: gak@google.com (Gregory Kick)
  */
 
 package dk.ilios.spanner.model;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import com.google.common.base.Function;
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.Multimaps;
 
 import java.io.Serializable;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
+
 /**
  * A single, weighted measurement.
- *
- * @author gak@google.com (Gregory Kick)
  */
 public class Measurement implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    public static ImmutableListMultimap<String, Measurement> indexByDescription(
-            Iterable<Measurement> measurements) {
-        return Multimaps.index(measurements, new Function<Measurement, String>() {
-            @Override
-            public String apply(Measurement input) {
-                return input.description;
-            }
-        });
-    }
-
-    private int id;
     private Value value;
     private double weight;
     private String description;
-
-    private Measurement() {
-        this.value = Value.DEFAULT;
-        this.weight = 0.0;
-        this.description = "";
-    }
 
     private Measurement(Builder builder) {
         this.value = builder.value;
