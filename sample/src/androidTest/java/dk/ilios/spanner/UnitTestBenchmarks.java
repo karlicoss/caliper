@@ -6,7 +6,9 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 
+import dk.ilios.spanner.config.RuntimeInstrumentConfig;
 import dk.ilios.spanner.example.Utils;
+import dk.ilios.spanner.internal.RuntimeInstrument;
 import dk.ilios.spanner.junit.SpannerRunner;
 
 @RunWith(SpannerRunner.class)
@@ -18,13 +20,10 @@ public class UnitTestBenchmarks {
 
     @BenchmarkConfiguration
     public SpannerConfig configuration = new SpannerConfig.Builder()
-            .saveResults(resultsDir, UnitTestBenchmarks.class.getCanonicalName() + ".json")
-            .useBaseline(baseLineFile)
-            .maxFailureLimit(1.0f) // Accept 100% difference, normally should be 10-15%
-            .minFailureLimit(1.0f) // Accept 100% difference, normally should be 10-15%
-            .meanFailureLimit(1.0f) // Accept 100% difference, normally should be 10-15%
-            .medianFailureLimit(1.0f) // Accept 100% difference, normally should be 10-15%
-            .uploadResults()
+            .saveResults(resultsDir, UnitTestBenchmarks.class.getCanonicalName() + ".json") // Save results to disk
+            .useBaseline(baseLineFile) // Compare against a baseline
+            .medianFailureLimit(Float.MAX_VALUE) // Fail if difference vs. baseline is to big. Should normally be 10-15%  (0.15)
+            .addInstrument(RuntimeInstrumentConfig.defaultConfig()) // Configure how benchmark is run/measured
             .build();
 
     // Public test parameters (value chosen and injected by Experiment)
