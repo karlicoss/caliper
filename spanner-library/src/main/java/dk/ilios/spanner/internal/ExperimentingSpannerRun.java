@@ -152,7 +152,7 @@ public final class ExperimentingSpannerRun implements SpannerRun {
 
         stdout.flush();
 
-        int totalTrials = experimentsToRun.size() * options.trialsPrExperiment();
+        int totalTrials = experimentsToRun.size() * options.getTrialsPrExperiment();
         Stopwatch stopwatch = Stopwatch.createStarted();
         List<ScheduledTrial> trials = createScheduledTrials(experimentsToRun, totalTrials);
 
@@ -248,7 +248,7 @@ public final class ExperimentingSpannerRun implements SpannerRun {
     private List<ScheduledTrial> createScheduledTrials(ImmutableSet<Experiment> experimentsToRun, int totalTrials) {
         List<ScheduledTrial> trials = Lists.newArrayListWithCapacity(totalTrials);
             for (Experiment experiment : experimentsToRun) {
-                for (int i = 0; i < options.trialsPrExperiment(); i++) {
+                for (int i = 0; i < options.getTrialsPrExperiment(); i++) {
 
                 BenchmarkSpec benchmarkSpec = experiment.benchmarkSpec();
 

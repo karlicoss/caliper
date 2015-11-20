@@ -110,7 +110,7 @@ public class Spanner {
 
             ImmutableSet<Instrument> instruments = getInstruments(benchmarkConfig);
 
-            int poolSize = benchmarkConfig.benchmarkThreads();
+            int poolSize = benchmarkConfig.getNoBenchmarkThreads();
             ListeningExecutorService executor = MoreExecutors.listeningDecorator(Executors.newFixedThreadPool(poolSize));
 
             StdOut stdOut = new AndroidStdOut();
@@ -122,10 +122,12 @@ public class Spanner {
 
             ExperimentSelector experimentSelector = new AndroidExperimentSelector(benchmarkClass, instruments);
 
+            // GSON config
             GsonBuilder gsonBuilder = new GsonBuilder().setExclusionStrategies(new AnnotationExclusionStrategy());
             gsonBuilder.registerTypeAdapterFactory(TypeAdapters.newFactory(Instant.class, new InstantTypeAdapter()));
             Gson gson = gsonBuilder.create();
 
+            // Configure baseline data
             Trial[] baselineData;
             if (baseline != null) {
                 BufferedReader br = null;
@@ -147,22 +149,21 @@ public class Spanner {
                 baselineData = new Trial[0];
             }
 
+            // Configure ResultProcessors
             Set<ResultProcessor> processors = new HashSet<>();
-            if (benchmarkConfig.getResultsFolder() != null) {
-                OutputFileDumper dumper = new OutputFileDumper(runInfo, benchmarkClass, gson, benchmarkConfig.getResultsFolder());
+            if (benchmarkConfig.getResultsFile() != null) {
+                OutputFileDumper dumper = new OutputFileDumper(gson, benchmarkConfig.getResultsFile());
                 processors.add(dumper);
             }
             if (benchmarkConfig.getBaselineOutputFile() != null) {
-                File baselineDir = new File(benchmarkConfig.getBaselineOutputFile().getParent());
-                String baselineFilename = benchmarkConfig.getBaselineOutputFile().getName();
-                OutputFileDumper dumper = new OutputFileDumper(runInfo, benchmarkClass, gson, baselineDir, baselineFilename);
+                OutputFileDumper dumper = new OutputFileDumper(gson, benchmarkConfig.getBaseLineFile());
                 processors.add(dumper);
             }
             if (benchmarkConfig.isUploadResults()) {
                 HttpUploader uploader = new HttpUploader(stdOut, gson, benchmarkConfig);
                 processors.add(uploader);
             }
-
+            processors.addAll(benchmarkConfig.getResultProcessors());
             ImmutableSet<ResultProcessor> resultProcessors = ImmutableSet.copyOf(processors);
 
             // Configure runner

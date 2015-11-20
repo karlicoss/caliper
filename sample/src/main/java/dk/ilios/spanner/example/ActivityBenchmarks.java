@@ -17,7 +17,7 @@ public class ActivityBenchmarks {
 
     @BenchmarkConfiguration
     public SpannerConfig configuration = new SpannerConfig.Builder()
-            .saveResults(resultsDir)
+            .saveResults(resultsDir, ActivityBenchmarks.class.getCanonicalName() + ".json")
             .useBaseline(baseLineFile)
             .medianFailureLimit(1.0f) // Accept 100% difference, normally should be 10-15%
             .uploadResults()

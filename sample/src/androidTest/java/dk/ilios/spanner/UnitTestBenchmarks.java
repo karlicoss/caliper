@@ -18,8 +18,7 @@ public class UnitTestBenchmarks {
 
     @BenchmarkConfiguration
     public SpannerConfig configuration = new SpannerConfig.Builder()
-            .saveResults(resultsDir)
-            .createBaseline(resultsDir)
+            .saveResults(resultsDir, UnitTestBenchmarks.class.getCanonicalName() + ".json")
             .useBaseline(baseLineFile)
             .maxFailureLimit(1.0f) // Accept 100% difference, normally should be 10-15%
             .minFailureLimit(1.0f) // Accept 100% difference, normally should be 10-15%

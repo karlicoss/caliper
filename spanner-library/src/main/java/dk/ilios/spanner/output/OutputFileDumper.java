@@ -16,17 +16,11 @@
 
 package dk.ilios.spanner.output;
 
-import static java.util.logging.Level.SEVERE;
-
 import com.google.common.base.Charsets;
 import com.google.common.base.Optional;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonWriter;
-
-import org.threeten.bp.LocalDateTime;
-import org.threeten.bp.ZoneId;
-import org.threeten.bp.format.DateTimeFormatter;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -34,10 +28,10 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.util.logging.Logger;
 
-import dk.ilios.spanner.config.InvalidConfigurationException;
-import dk.ilios.spanner.benchmark.BenchmarkClass;
-import dk.ilios.spanner.model.Run;
+import dk.ilios.spanner.internal.InvalidBenchmarkException;
 import dk.ilios.spanner.model.Trial;
+
+import static java.util.logging.Level.SEVERE;
 
 /**
  * {@link ResultProcessor} that dumps the output data to a file in JSON format. By default, the
@@ -50,43 +44,16 @@ public final class OutputFileDumper implements ResultProcessor {
 
     private static final Logger logger = Logger.getLogger(OutputFileDumper.class.getName());
 
-    private final Run run;
     private final Gson gson;
     private final File resultFile;
     private final File workFile;
     private Optional<JsonWriter> writer = Optional.absent();
 
-    /**
-     * Creates a ResultProcessor that saves the output of the benchmark to a file to a directory.
-     * Each benchmark file gets an auto-generated filename.
-     */
-    public OutputFileDumper(Run run,
-                            BenchmarkClass benchmarkClass,
-                            Gson gson,
-                            File outputDir) throws InvalidConfigurationException {
-        this(run ,benchmarkClass, gson, outputDir, null);
-    }
-
-    public OutputFileDumper(Run run,
-                            BenchmarkClass benchmarkClass,
-                            Gson gson,
-                            File outputDir,
-                            String overrideFileName) throws InvalidConfigurationException {
-
-        this.run = run;
-        String fileName = overrideFileName != null ? overrideFileName : createFileName(benchmarkClass.name());
-        this.resultFile = new File(outputDir, fileName);
+    public OutputFileDumper(Gson gson, File resultFile) throws InvalidBenchmarkException {
+        this.resultFile = resultFile;
         logger.fine(String.format("using %s for results", resultFile));
         this.gson = gson;
         this.workFile = new File(resultFile.getPath() + ".tmp");
-    }
-
-    private String createFileName(String benchmarkName) {
-        return String.format("%s.%s.json", benchmarkName, createTimestamp());
-    }
-
-    private String createTimestamp() {
-        return DateTimeFormatter.ISO_DATE_TIME.format(LocalDateTime.ofInstant(run.startTime(), ZoneId.systemDefault()));
     }
 
     @Override

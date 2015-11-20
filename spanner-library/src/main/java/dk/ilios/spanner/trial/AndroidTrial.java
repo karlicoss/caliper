@@ -102,7 +102,7 @@ public class AndroidTrial implements Callable<Trial.Result> {
 
 
     private long getTrialTimeLimitTrialNanos() {
-        ShortDuration timeLimit = options.timeLimit();
+        ShortDuration timeLimit = options.getTimeLimit();
         if (ShortDuration.zero().equals(timeLimit)) {
             return Long.MAX_VALUE;
         }

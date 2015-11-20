@@ -179,7 +179,7 @@ public class SpannerRunner extends Runner {
         // Check all configured percentiles
         Set<Float> percentiles = benchmarkConfiguration.getPercentileFailureLimits();
         for (Float percentile : percentiles) {
-            float maxLimit = benchmarkConfiguration.getPercentileFailureDiff(percentile);
+            float maxLimit = benchmarkConfiguration.getPercentileFailureLimit(percentile);
             if (maxLimit == SpannerConfig.NOT_ENABLED) {
                 continue;
             }
@@ -194,7 +194,7 @@ public class SpannerRunner extends Runner {
 
         float meanLimit = benchmarkConfiguration.getMeanFailureLimit();
         double meanChange = Math.abs(trial.getChangeFromBaselineMean());
-        if (meanChange > meanLimit) {
+        if (meanLimit != SpannerConfig.NOT_ENABLED && meanChange > meanLimit) {
             sb.append("\n");
             sb.append(String.format("Change from baseline mean was to big: %.2f%%. Limit is %.2f%%",
                     meanChange * 100, meanLimit * 100));
@@ -214,7 +214,7 @@ public class SpannerRunner extends Runner {
         } else if (percentile == 50.0F) {
             return "Median";
         } else {
-            return percentile + ". percentile";
+            return percentile + "th percentile";
         }
     }
 
@@ -259,7 +259,7 @@ public class SpannerRunner extends Runner {
 
         // Trial number
         String trialNumber = "";
-        if (benchmarkConfiguration.trialsPrExperiment() > 1) {
+        if (benchmarkConfiguration.getTrialsPrExperiment() > 1) {
             trialNumber = "#" + trial.getTrialNumber();
         }
 

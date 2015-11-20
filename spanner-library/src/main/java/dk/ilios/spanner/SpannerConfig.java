@@ -9,9 +9,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
-import dk.ilios.spanner.config.CustomInstrumentConfig;
 import dk.ilios.spanner.config.InstrumentConfig;
 import dk.ilios.spanner.config.RuntimeInstrumentConfig;
+import dk.ilios.spanner.output.ResultProcessor;
 import dk.ilios.spanner.util.ShortDuration;
 
 /**
@@ -21,7 +21,7 @@ public class SpannerConfig {
 
     public static final float NOT_ENABLED = -1.0F;
 
-    private final File resultsFolder;
+    private final File resultsFile;
     private final File baseLineFile;
     private final boolean warnIfWrongTestGranularity;
     private final File baselineOutputFile;
@@ -33,9 +33,10 @@ public class SpannerConfig {
     private int maxBenchmarkThreads;
     private int trialsPrExperiment;
     private Set<InstrumentConfig> configs = new HashSet<>();
+    private Set<ResultProcessor> resultProcessors;
 
     private SpannerConfig(Builder builder) {
-        this.resultsFolder = builder.resultsFolder;
+        this.resultsFile = builder.resultsFile;
         this.baseLineFile = builder.baseLineFile;
         this.warnIfWrongTestGranularity = builder.warnIfWrongTestGranularity;
         this.baselineOutputFile = builder.baselineOutputFile;
@@ -46,16 +47,16 @@ public class SpannerConfig {
         this.meanFailureLimit = builder.meanFailureLimit;
         this.maxBenchmarkThreads = builder.maxBenchmarkThreads;
         this.trialsPrExperiment = builder.trialsPrExperiment;
+        this.resultProcessors = builder.resultProcessors;
         if (builder.instrumentationConfigs.isEmpty()) {
             configs.add(RuntimeInstrumentConfig.defaultConfig());
-            configs.add(CustomInstrumentConfig.defaultConfig());
         } else {
             configs.addAll(builder.instrumentationConfigs);
         }
     }
 
-    public File getResultsFolder() {
-        return resultsFolder;
+    public File getResultsFile() {
+        return resultsFile;
     }
 
     public File getBaseLineFile() {
@@ -86,19 +87,19 @@ public class SpannerConfig {
         return configs;
     }
 
-    public int benchmarkThreads() {
+    public int getNoBenchmarkThreads() {
         return maxBenchmarkThreads;
     }
 
-    public int trialsPrExperiment() {
+    public int getTrialsPrExperiment() {
         return trialsPrExperiment;
     }
 
-    public ShortDuration timeLimit() {
+    public ShortDuration getTimeLimit() {
         return ShortDuration.of(5, TimeUnit.MINUTES); // TODO Make this configurable?
     }
 
-    public float getMinFailureDiff() {
+    public float getMinFailureLimit() {
         Float result = percentileFailureLimits.get(0F);
         if (result == null) {
             return NOT_ENABLED;
@@ -107,7 +108,7 @@ public class SpannerConfig {
         }
     }
 
-    public float getMaxFailureDiff() {
+    public float getMaxFailureLimit() {
         Float result = percentileFailureLimits.get(1.0F);
         if (result == null) {
             return NOT_ENABLED;
@@ -120,13 +121,17 @@ public class SpannerConfig {
         return meanFailureLimit;
     }
 
-    public float getMedianFailureDiff() {
+    public float getMedianFailureLimit() {
         Float result = percentileFailureLimits.get(0.5F);
         if (result == null) {
             return NOT_ENABLED;
         } else {
             return result;
         }
+    }
+
+    public Set<ResultProcessor> getResultProcessors() {
+        return resultProcessors;
     }
 
     /**
@@ -136,7 +141,7 @@ public class SpannerConfig {
      * @param percentile The difference in percent a trial must change for this percentile
      * @return Maximum change in percent for the percentile: [0, 1.0] or {@link #NOT_ENABLED}.
      */
-    public float getPercentileFailureDiff(float percentile) {
+    public float getPercentileFailureLimit(float percentile) {
         Float result = percentileFailureLimits.get(percentile);
         if (result == null) {
             return NOT_ENABLED;
@@ -160,7 +165,7 @@ public class SpannerConfig {
      * Builder for fluent construction of a SpannerConfig object.
      */
     public static class Builder {
-        private File resultsFolder = null;
+        private File resultsFile = null;
         private File baseLineFile = null;
         private boolean warnIfWrongTestGranularity = true;
         private File baselineOutputFile = null;
@@ -173,6 +178,7 @@ public class SpannerConfig {
         private float meanFailureLimit = NOT_ENABLED;
         // All values > 0. All keys: [0,100] -> 0 = Min, 100 = max, 50 = median
         private Map<Float, Float> percentileFailureLimits = new HashMap<>();
+        private Set<ResultProcessor> resultProcessors = new HashSet<>();
 
         public Builder() {
         }
@@ -190,25 +196,28 @@ public class SpannerConfig {
          * @param dir Reference to folder.
          * @return Builder object.
          */
-        public Builder saveResults(File dir) {
+        public Builder saveResults(File dir, String filename) {
             if (dir != null) {
                 dir.mkdirs();
             }
             checkValidWritableFolder(dir);
-            this.resultsFolder = dir;
+            this.resultsFile = new File(dir, filename);
             return this;
         }
 
         /**
          * Set a baseline for the tests being run.
          *
-         * @param file Reference to the baseline file (see .
+         * @param file Baseline file to use.
          * @return Builder object.
          */
         public Builder useBaseline(File file) {
             checkNotNull(file, "Baseline file was null");
             if (file.isDirectory()) {
                 throw new IllegalArgumentException("File is a directory, not a baseline file: " + file);
+            }
+            if (!file.exists()) {
+                throw new IllegalArgumentException("Baseline file does not exists: " + file);
             }
             this.baseLineFile = file;
             return this;
@@ -220,16 +229,6 @@ public class SpannerConfig {
          */
         public Builder warnIfWrongTestGranularity() {
             this.warnIfWrongTestGranularity = true;
-            return this;
-        }
-
-        /**
-         * Save the result of this of benchmark as a new baseline file called {@code baseline.json}.
-         * @param dir Folder to save the new baseline file in.
-         */
-        public Builder createBaseline(File dir) {
-            checkValidWritableFolder(dir);
-            this.baselineOutputFile = new File(dir, "baseline.json");
             return this;
         }
 
@@ -352,6 +351,19 @@ public class SpannerConfig {
          */
         public Builder trialsPrExperiment(int trials) {
             this.trialsPrExperiment = trials;
+            return this;
+        }
+
+        /**
+         * Add a custom results processor that can process all trial results.
+         * This can e.g be used to convert the trial results to some custom output.
+         *
+         * @param processor {@link ResultProcessor} to add.
+         * @return the Builder.
+         */
+        public Builder addResultProcessor(ResultProcessor processor) {
+            checkNotNull(processor, "Non-null processor required.");
+            this.resultProcessors.add(processor);
             return this;
         }
 

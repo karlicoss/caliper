@@ -1,4 +1,5 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
+apply plugin: 'ch.netzwerg.release'
 
 buildscript {
     repositories {
@@ -16,7 +17,7 @@ buildscript {
 
 allprojects {
     group = 'dk.ilios'
-    version = file("${rootDir}/spanner-library/version.txt").text.trim();
+    version = file("${rootDir}/version.txt").text.trim();
     repositories {
         jcenter()
         mavenLocal()

@@ -23,17 +23,17 @@ public class ConfigurationTests {
         SpannerConfig defaultConfig = new SpannerConfig.Builder().build();
         assertEquals("", defaultConfig.getApiKey());
         assertEquals(null, defaultConfig.getBaseLineFile());
-        assertEquals(null, defaultConfig.getResultsFolder());
-        assertEquals(SpannerConfig.NOT_ENABLED, defaultConfig.getMinFailureDiff(), 0.0f);
+        assertEquals(null, defaultConfig.getResultsFile());
+        assertEquals(SpannerConfig.NOT_ENABLED, defaultConfig.getMinFailureLimit(), 0.0f);
         assertEquals(SpannerConfig.NOT_ENABLED, defaultConfig.getMeanFailureLimit(), 0.0f);
-        assertEquals(SpannerConfig.NOT_ENABLED, defaultConfig.getMedianFailureDiff(), 0.0f);
-        assertEquals(SpannerConfig.NOT_ENABLED, defaultConfig.getMaxFailureDiff(), 0.0f);
+        assertEquals(SpannerConfig.NOT_ENABLED, defaultConfig.getMedianFailureLimit(), 0.0f);
+        assertEquals(SpannerConfig.NOT_ENABLED, defaultConfig.getMaxFailureLimit(), 0.0f);
         assertFalse(defaultConfig.isUploadResults());
         assertTrue(defaultConfig.warnIfWrongTestGranularity());
         assertEquals(null, defaultConfig.getBaselineOutputFile());
         assertEquals(new URL("https://microbenchmarks.appspot.com"), defaultConfig.getUploadUrl());
-        assertEquals(1, defaultConfig.benchmarkThreads());
-        assertEquals(1, defaultConfig.trialsPrExperiment());
+        assertEquals(1, defaultConfig.getNoBenchmarkThreads());
+        assertEquals(1, defaultConfig.getTrialsPrExperiment());
     }
 
     @Test
