@@ -178,11 +178,8 @@ public class Spanner {
             // Run benchmark
             run.run();
             callback.onComplete();
-        } catch (InvalidBenchmarkException e) {
-            callback.onError(e);
-        } catch (InvalidCommandException e) {
-            callback.onError(e);
-        } catch (InvalidConfigurationException e) {
+        } catch (Exception e) {
+            // Report all exceptions
             callback.onError(e);
         }
     }

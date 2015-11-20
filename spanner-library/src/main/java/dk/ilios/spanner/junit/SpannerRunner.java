@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableSortedMap;
 
 import org.junit.Ignore;
 import org.junit.runner.Description;
+import org.junit.runner.Result;
 import org.junit.runner.Runner;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunNotifier;
@@ -31,8 +32,9 @@ public class SpannerRunner extends Runner {
 
     private Object testInstance;
     private TestClass testClass;
-    private List<Method> testMethods = new ArrayList();
+    private List<Method> testMethods = new ArrayList<>();
     private SpannerConfig benchmarkConfiguration;
+    private Result result;
 
     public SpannerRunner(Class clazz) {
         testClass = new TestClass(clazz);
@@ -88,37 +90,24 @@ public class SpannerRunner extends Runner {
 
     @Override
     public Description getDescription() {
-        Description spec = Description.createSuiteDescription(
+        return Description.createSuiteDescription(
                 this.testClass.getName(),
                 this.testClass.getJavaClass().getAnnotations()
         );
-        return spec;
     }
 
     /**
      * @return the number of tests to be run by the receiver
      */
+    @Override
     public int testCount() {
-        return testMethods.size();
+        return 0; // TODO Expose number from Spanner
     }
 
     //
     @Override
     public void run(final RunNotifier runNotifier) {
-        // Because Description must have the same value when starting and finishing the unit test, we are introducing
-        // a "fake" method called "Running". This acts as a placeholder for all running benchmarks, and we can
-        // then determine how the unit test is displayed when it finishes or crashes.
-        //
-        // Only downside is that the duration of the benchmark test as measured by Junit will be 0s instead of the
-        // actual value, but on the upside it is possible to show the value of the benchmark in the title.
-        try {
-            final Description RUNNING = Description.createTestDescription(testClass.getJavaClass(), "doingStuff");
-            runNotifier.fireTestRunStarted(RUNNING);
-            runBenchmarks(runNotifier);
-        } finally {
-            // TODO Notify UI if an exception happened, otherwise it will just report "empty test suite"
-            runNotifier.fireTestRunFinished(null);
-        }
+        runBenchmarks(runNotifier);
     }
 
     private void runBenchmarks(final RunNotifier runNotifier) {
@@ -128,7 +117,16 @@ public class SpannerRunner extends Runner {
 
             @Override
             public void onStart() {
-                /* Ignore */
+                // Because Description must have the same value when starting and finishing the unit test, we are introducing
+                // a "fake" method called "Running". This acts as a placeholder for all running benchmarks, and we can
+                // then determine how the unit test is displayed when it finishes or crashes.
+                //
+                // Only downside is that the duration of the benchmark test as measured by Junit will be 0s instead of the
+                // actual value, but on the upside it is possible to show the value of the benchmark in the title.
+                result = new Result();
+                runNotifier.addListener(result.createListener());
+                final Description RUNNING = Description.createTestDescription(testClass.getJavaClass(), "doingStuff");
+                runNotifier.fireTestRunStarted(RUNNING);
             }
 
             @Override
@@ -150,24 +148,29 @@ public class SpannerRunner extends Runner {
             @Override
             public void trialFailure(Trial trial, Throwable error) {
                 Description spec = getDescription(trial);
-                runNotifier.fireTestRunStarted(spec);
+                runNotifier.fireTestStarted(spec);
                 runNotifier.fireTestFailure(new Failure(spec, error));
                 runNotifier.fireTestFinished(spec);
             }
 
             @Override
             public void trialEnded(Trial trial) {
-                /* Ignore */
+                currentTrail = null;
             }
 
             @Override
             public void onComplete() {
-                /* Ignore */
+                runNotifier.fireTestRunFinished(result);
             }
 
             @Override
             public void onError(Exception error) {
-                throw new RuntimeException(error);
+                // Something broke horribly. Further testing will be abort.
+                Description spec = getDescription(null);
+                runNotifier.fireTestStarted(spec);
+                runNotifier.fireTestFailure(new Failure(spec, error));
+                runNotifier.fireTestFinished(spec);
+                runNotifier.fireTestRunFinished(result);
             }
         });
     }
@@ -234,6 +237,10 @@ public class SpannerRunner extends Runner {
      * @return description of the trial.
      */
     private Description getDescription(Trial trial) {
+        if (trial == null) {
+            return Description.createTestDescription(testClass.getJavaClass(), "Unknown");
+        }
+
         Method method = trial.experiment().instrumentation().benchmarkMethod();
         return Description.createTestDescription(testClass.getJavaClass(), method.getName());
     }
