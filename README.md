@@ -14,7 +14,7 @@ Stable releases of Spanner is available on [JCenter](https://bintray.com/cmelchi
 
 ```
 dependencies {
-  compile 'dk.ilios:spanner:x.y.z' // No stable release yet
+  compile 'dk.ilios:spanner:0.5.0'
 }
 ```
 
@@ -28,11 +28,18 @@ repositories {
 }
 
 dependencies {
-  compile 'dk.ilios:spanner:0.3.0-SNAPSHOT'
+  compile 'dk.ilios:spanner:0.6.0-SNAPSHOT'
 }
 ```
 
 ## Creating a benchmark
+
+```
+
+
+```
+
+
 
 * See an example of a standalone benchmark [here](https://github.com/cmelchior/spanner/blob/master/sample/src/main/java/dk/ilios/spanner/example/ActivityBenchmarks.java).
 * See an example of a JUnit benchmark [here](https://github.com/cmelchior/spanner/blob/master/sample/src/androidTest/java/dk/ilios/spanner/UnitTestBenchmarks.java).
@@ -47,6 +54,14 @@ androidTestCompile 'com.android.support.test:runner:0.4.1'
 androidTestCompile 'com.android.support.test:rules:0.4.1'
 androidTestCompile 'junit:junit:4.12'
 ```
+
+## Differences from Caliper (TODO)
+
+* Able to compare against a baseline
+* Able to fail a benchmark if difference is to big compared to the baseline.
+* Support for running using JUnit 4 (Incl. inside Android Studio).
+* Removed support for VM parameters
+
 
 ## Online results
 
@@ -65,15 +80,9 @@ permission in AndroidManifest.xml:
 
 The output from a benchmark will be posted in 3 places:
 - LogCat
-- Json file in `context.getExternalFilesDir()` 
+- Json file (if enabled)
 - Uploaded to Caliper website (if enabled)
 
-## Differences from Caliper (TODO)
-
-* Able to compare against a baseline
-* Support for running in the JUnit framework
-* Running on the same thread starting the benchmark
-* Removed support for VM parameters 
 
 # Benchmarking
 
@@ -97,7 +106,7 @@ value.
 
 The combination of a *Scenario* and an *Instrument* is called an *Experiment*. 
 An experiment is thus a full description of what test(s) to run and how to 
-measure it.
+measure them.
 
 Running an experiment is called a *Trial*.
 
@@ -112,14 +121,14 @@ confidence in our results.
 
 Each trial will output statistics about the measurements like min, max and mean. 
 
-The output from a Spanner benchmark is the results of all the experiments.
+The output from a Spanner benchmark is the list of trials that has run.
 
 
 ## Creating a measurement (TODO)
 
 * Detect number of repetitions needed to exceed threshold
 * Warmup
-
+* Measuring
 
 ## Benchmarking pitfalls
 
@@ -132,8 +141,7 @@ Just-in-time compilers will analyze the code while it runs and optimize it, for
 this reason it is important to do warmup in these kind of  environments.
 
 Ahead-of-time compilers do not modify the code while it is running, as such no
-warmup should be needed
-running on ART 
+warmup should be needed running on ART
 
 * Running tests in a different process
 * Warmup
@@ -182,6 +190,7 @@ running on ART
 
 ### Math (TODO)
 
+* Why median over mean?
 * What is the confidence interval. 
 * What is variance, how to interpret it.
 
