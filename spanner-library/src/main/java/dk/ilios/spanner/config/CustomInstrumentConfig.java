@@ -21,7 +21,7 @@ import dk.ilios.spanner.internal.CustomMeasurementInstrument;
 import dk.ilios.spanner.internal.Instrument;
 
 /**
- * Type safe configuration object for Custom {@link dk.ilios.spanner.internal.Instrument}s.
+ * Typesafe configuration object for Custom {@link dk.ilios.spanner.internal.Instrument}s.
  */
 public class CustomInstrumentConfig extends InstrumentConfig {
 

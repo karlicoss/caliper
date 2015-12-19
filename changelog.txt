@@ -1,0 +1,8 @@
+0.6.0
+ - Fixed @CustomMeasurement not working if no configuration is provided.
+
+0.5.0
+ - First "stable" release after major restructuring from
+ - Added support for custom JUnit4 runner
+ - Added support for comparing against a baseline
+ - All configuration options now uses typesafe configuration objects.

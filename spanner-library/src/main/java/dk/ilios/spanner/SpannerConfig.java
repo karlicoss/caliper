@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import dk.ilios.spanner.config.CustomInstrumentConfig;
 import dk.ilios.spanner.config.InstrumentConfig;
 import dk.ilios.spanner.config.RuntimeInstrumentConfig;
 import dk.ilios.spanner.output.ResultProcessor;
@@ -48,6 +49,7 @@ public class SpannerConfig {
         this.resultProcessors = builder.resultProcessors;
         if (builder.instrumentationConfigs.isEmpty()) {
             configs.add(RuntimeInstrumentConfig.defaultConfig());
+            configs.add(CustomInstrumentConfig.defaultConfig());
         } else {
             configs.addAll(builder.instrumentationConfigs);
         }

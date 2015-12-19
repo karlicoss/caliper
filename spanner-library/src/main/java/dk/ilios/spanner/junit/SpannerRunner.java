@@ -111,7 +111,12 @@ public class SpannerRunner extends Runner {
     }
 
     private void runBenchmarks(final RunNotifier runNotifier) {
-        Spanner.runBenchmarks(testClass.getJavaClass(), testMethods, new Spanner.Callback() {
+        // TODO Expose configuration from Spanner instead of rebuilding it here. Probably require
+        // removing the static run methods.
+        if (benchmarkConfiguration == null) {
+            benchmarkConfiguration = new SpannerConfig.Builder().build();
+        }
+       Spanner.runBenchmarks(testClass.getJavaClass(), testMethods, new Spanner.Callback() {
 
             public Trial currentTrail;
 
