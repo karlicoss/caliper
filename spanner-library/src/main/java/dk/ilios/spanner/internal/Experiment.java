@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import dk.ilios.spanner.json.ExcludeFromJson;
 import dk.ilios.spanner.model.BenchmarkSpec;
 import dk.ilios.spanner.model.Trial;
 
@@ -35,6 +36,7 @@ import dk.ilios.spanner.model.Trial;
  */
 public final class Experiment {
 
+    @ExcludeFromJson
     private final Instrument.Instrumentation instrumentation;
     private final SortedMap<String, String> userParameters;
     private final BenchmarkSpec benchmarkSpec;

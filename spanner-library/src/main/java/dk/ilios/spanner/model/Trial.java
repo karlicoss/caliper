@@ -18,9 +18,11 @@
 
 package dk.ilios.spanner.model;
 
+import com.google.common.base.Defaults;
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 
 import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math.stat.descriptive.rank.Percentile;
@@ -48,24 +50,14 @@ public final class Trial {
     private Run run;
     private InstrumentSpec instrumentSpec;
     private Scenario scenario;
-    private Experiment experiment;
     private List<Measurement> measurements = new ArrayList<>();
     private List<String> messages = new ArrayList<>();
-
-    @ExcludeFromJson
-    private int trialNumber;
-
-    @ExcludeFromJson
-    private boolean trialComplete;
-
-    @ExcludeFromJson
-    private boolean resultsCalculated;
-
-    @ExcludeFromJson
-    private Percentile percentile;
-
-    @ExcludeFromJson
-    private DescriptiveStatistics descriptiveStatistics;
+    private Experiment experiment;
+    @ExcludeFromJson private int trialNumber;
+    @ExcludeFromJson private boolean trialComplete;
+    @ExcludeFromJson private boolean resultsCalculated;
+    @ExcludeFromJson private Percentile percentile;
+    @ExcludeFromJson private DescriptiveStatistics descriptiveStatistics;
 
     private Trial(Builder builder) {
         this.trialNumber = builder.trialNumber;
