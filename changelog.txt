@@ -3,7 +3,7 @@
  - Fixed GSON crashing ART on Marshmallow devices.
 
 0.5.0
- - First "stable" release after major restructuring from
- - Added support for custom JUnit4 runner
- - Added support for comparing against a baseline
+ - First "stable" release after major restructuring from Caliper.
+ - Added support for custom JUnit4 runner.
+ - Added support for comparing against a baseline.
  - All configuration options now uses typesafe configuration objects.
