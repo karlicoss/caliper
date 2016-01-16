@@ -32,7 +32,7 @@ public class ConfigurationTests {
         assertEquals(1, defaultConfig.getNoBenchmarkThreads());
         assertEquals(1, defaultConfig.getTrialsPrExperiment());
         assertEquals(0, defaultConfig.getResultProcessors().size());
-        assertEquals(1, defaultConfig.getInstrumentConfigurations().size());
+        assertEquals(2, defaultConfig.getInstrumentConfigurations().size());
     }
 
     @Test
