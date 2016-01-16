@@ -1,5 +1,7 @@
 package dk.ilios.spanner.junit;
 
+import android.util.Pair;
+
 import com.google.common.collect.ImmutableSortedMap;
 
 import org.junit.Ignore;
@@ -13,9 +15,14 @@ import org.junit.runners.model.TestClass;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.sql.Time;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import dk.ilios.spanner.Benchmark;
 import dk.ilios.spanner.BenchmarkConfiguration;
@@ -30,11 +37,26 @@ import dk.ilios.spanner.model.Trial;
  */
 public class SpannerRunner extends Runner {
 
+    private static final DecimalFormat decimalFormatter;
+    static {
+        String pattern = "###,###.##";
+        decimalFormatter = new DecimalFormat(pattern, new DecimalFormatSymbols(Locale.getDefault()));
+    }
+
     private Object testInstance;
     private TestClass testClass;
     private List<Method> testMethods = new ArrayList<>();
     private SpannerConfig benchmarkConfiguration;
     private Result result;
+
+    private static List<Pair<TimeUnit, String>> units;
+    static {
+        units = new ArrayList<>();
+        units.add(new Pair(TimeUnit.SECONDS, "s"));
+        units.add(new Pair(TimeUnit.MILLISECONDS, "ms"));
+        units.add(new Pair(TimeUnit.MICROSECONDS, "μs"));
+        units.add(new Pair(TimeUnit.NANOSECONDS, "ns"));
+    }
 
     public SpannerRunner(Class clazz) {
         testClass = new TestClass(clazz);
@@ -259,7 +281,7 @@ public class SpannerRunner extends Runner {
      */
     private Description getDescription(Trial trial, double result) {
         Method method = trial.experiment().instrumentation().benchmarkMethod();
-        String resultString = String.format(" [%.2f %s.]", result, trial.getUnit().toLowerCase());
+        String resultString = String.format(" [%s]", prettyPrintResult(result, trial.getUnit()));
         resultString += formatBenchmarkChange(trial);
 
         // Benchmark parameters
@@ -283,4 +305,32 @@ public class SpannerRunner extends Runner {
                 resultString);
         return Description.createTestDescription(testClass.getJavaClass(), methodDescription);
     }
+
+    private Object prettyPrintResult(double result, String unit) {
+        // Try to detect a proper TimeUnit, but since CustomMeasurement allows any unit this might not be possible.
+        int unitIndex = -1;
+        for (int i = 0; i < units.size(); i++) {
+            if (units.get(i).second.equalsIgnoreCase(unit)) {
+                unitIndex = i;
+                break;
+            }
+        }
+
+        if (unitIndex > 0) {
+            // For results we can determine the solutions of: Calculate a resolution so final number is < 1000 and return
+            // that unit with max. 2 decimals
+            while (unitIndex > 0) {
+                if (result > 1000D) {
+                    unitIndex--;
+                    unit = units.get(unitIndex).second;
+                    result = result/1000D;
+                }  else {
+                    break;
+                }
+            }
+        }
+
+        return String.format("%s %s.", decimalFormatter.format(result), unit);
+    }
+
 }

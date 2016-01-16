@@ -1,5 +1,6 @@
 package dk.ilios.spanner;
 
+import android.os.SystemClock;
 import android.support.test.InstrumentationRegistry;
 
 import org.junit.runner.RunWith;
