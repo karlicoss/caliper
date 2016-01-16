@@ -121,7 +121,7 @@ bintray {
     user = project.hasProperty('spannerBintrayUser') ? spannerBintrayUser : System.getenv('SPANNER_BINTRAY_USER')
     key = project.hasProperty('spannerBintrayKey') ? spannerBintrayKey : System.getenv('SPANNER_BINTRAY_KEY')
     publications = ['library']
-    publish = true
+    publish = false
     pkg {
         repo = 'maven'
         name = 'spanner'
@@ -139,7 +139,7 @@ bintray {
 // See https://github.com/netzwerg/gradle-release-plugin
 release {
     dependsOn build
-    push = true
+    push = false
     versionSuffix = '-SNAPSHOT'
     tagPrefix = 'v'
 }
