@@ -1,3 +1,8 @@
+    
+    cd caliper
+    mvn -DskipTests package assembly:single
+
+
 To build this project with Maven:
 
 1. cd caliper
@@ -6,3 +11,5 @@ mvn eclipse:configure-workspace eclipse:eclipse install
 2. To build examples
 cd examples
 mvn eclipse:configure-workspace eclipse:eclipse install
+
+
