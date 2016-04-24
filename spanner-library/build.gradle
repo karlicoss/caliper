@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
-apply plugin: "com.jfrog.artifactory"
+apply plugin: 'com.jfrog.artifactory'
 apply plugin: 'checkstyle'
 
 android {
@@ -56,6 +56,22 @@ dependencies {
     compile 'com.sun.jersey:jersey-client:1.11'
 }
 
+
+task sourcesJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier = 'sources'
+}
+
+task javadoc(type: Javadoc) {
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
 publishing {
     publications {
         library(MavenPublication) {
@@ -105,12 +121,14 @@ artifactory {
     publish {
         repository {
             repoKey = 'oss-snapshot-local'
-            username = project.hasProperty('spannerBintrayUser') ? spannerBintrayUser : System.getenv('SPANNER_BINTRAY_USER')
-            password = project.hasProperty('spannerBintrayKey') ? spannerBintrayKey : System.getenv('SPANNER_BINTRAY_KEY')
+            username = project.hasProperty('bintrayUser') ? bintrayUser : 'noUser'
+            password = project.hasProperty('bintrayKey') ? bintrayKey : 'noKey'
             maven = true
         }
         defaults {
-            publications ('library')
+            publishConfigs('library')
+            publishPom = true
+            publishIvy = false
         }
     }
 }
@@ -120,8 +138,9 @@ bintray {
     // user and key come from the gradle.properties file in ~/.gradle
     user = project.hasProperty('spannerBintrayUser') ? spannerBintrayUser : System.getenv('SPANNER_BINTRAY_USER')
     key = project.hasProperty('spannerBintrayKey') ? spannerBintrayKey : System.getenv('SPANNER_BINTRAY_KEY')
-    publications = ['library']
+    configurations = ['library']
     publish = false
+    dryRun = false
     pkg {
         repo = 'maven'
         name = 'spanner'
@@ -135,6 +154,11 @@ bintray {
     }
 }
 
+artifacts {
+    archives javadocJar
+    archives sourcesJar
+}
+
 // Configure ch.netzwerg.release plugin
 // See https://github.com/netzwerg/gradle-release-plugin
 release {
@@ -142,26 +166,6 @@ release {
     push = false
     versionSuffix = '-SNAPSHOT'
     tagPrefix = 'v'
-}
-
-task sourcesJar(type: Jar) {
-    from android.sourceSets.main.java.srcDirs
-    classifier = 'sources'
-}
-
-task javadoc(type: Javadoc) {
-    source = android.sourceSets.main.java.srcDirs
-    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
-artifacts {
-    archives javadocJar
-    archives sourcesJar
 }
 
 task checkstyle(type: Checkstyle) {
